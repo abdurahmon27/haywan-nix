@@ -1,0 +1,90 @@
+/* ReGreet login screen — Gruvbox Material, same palette as Waybar and Kitty.
+ * bg #32302f  fg #d4be98  gray #928374  orange #e78a4e  red #ea6962 */
+
+/* Login card and clock */
+frame.background {
+  background-color: rgba(40, 40, 40, 0.82);
+  border: 1px solid rgba(212, 190, 152, 0.10);
+  border-radius: 18px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  color: #d4be98;
+  padding: 10px 14px;
+}
+
+/* Clock at the top edge */
+frame.background label {
+  color: #d4be98;
+}
+
+/* Greeting ("Welcome back") */
+grid > label:first-child {
+  font-size: 22px;
+  color: #e78a4e;
+}
+
+grid > label {
+  color: #a89984;
+}
+
+entry,
+combobox button,
+passwordentry {
+  min-height: 42px;
+  background-color: rgba(60, 56, 54, 0.85);
+  border: 1px solid rgba(212, 190, 152, 0.08);
+  border-radius: 10px;
+  color: #d4be98;
+  box-shadow: none;
+}
+
+entry:focus-within,
+passwordentry:focus-within {
+  border-color: #e78a4e;
+  outline: none;
+}
+
+button {
+  min-height: 38px;
+  padding: 0 18px;
+  border-radius: 10px;
+  background-image: none;
+  background-color: rgba(80, 73, 69, 0.75);
+  border: 1px solid rgba(212, 190, 152, 0.08);
+  color: #d4be98;
+  box-shadow: none;
+}
+
+button:hover {
+  background-color: rgba(102, 92, 84, 0.85);
+}
+
+button.suggested-action {
+  background-color: #d65d0e;
+  color: #fbf1c7;
+  font-weight: bold;
+}
+
+button.suggested-action:hover {
+  background-color: #e78a4e;
+}
+
+/* Reboot / Power Off at the bottom */
+button.destructive-action {
+  background-color: rgba(40, 40, 40, 0.70);
+  color: #a89984;
+}
+
+button.destructive-action:hover {
+  background-color: rgba(234, 105, 98, 0.85);
+  color: #1d2021;
+}
+
+infobar {
+  border-radius: 10px;
+}
+
+/* The empty frame around the error bar would otherwise draw a stray line */
+frame:not(.background) {
+  border: none;
+  background: none;
+}

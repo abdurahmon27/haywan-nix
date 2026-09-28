@@ -1,5 +1,5 @@
-# Hyprland desktop: compositor, login screen, portals, fonts, theme, core Wayland tools.
-# The look & feel (keybinds, bar, terminal) lives in modules/home/desktop.nix.
+# Hyprland desktop: compositor, portals, fonts, theme, core Wayland tools.
+# Login screen: greeter.nix. Look & feel (keybinds, bar, terminal): modules/home/desktop.nix.
 { config, lib, pkgs, ... }:
 
 let
@@ -21,12 +21,6 @@ in
         example = "grp:alt_shift_toggle";
       };
     };
-
-    autoLogin = lib.mkOption {
-      type = lib.types.bool;
-      default = false;
-      description = "Skip the password prompt and start Hyprland right away.";
-    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -42,18 +36,6 @@ in
       displayManager.setupCommands = ''
         xset r rate 200 40
       '';
-    };
-
-    services.greetd = {
-      enable = true;
-      settings.default_session = {
-        command = "${pkgs.greetd.tuigreet}/bin/tuigreet --time --cmd Hyprland";
-        user = lib.mkDefault "greeter";
-      };
-      settings.initial_session = lib.mkIf cfg.autoLogin {
-        command = "Hyprland";
-        user = config.haywan.user.name;
-      };
     };
 
     xdg.portal = {

@@ -44,9 +44,6 @@
   # ── Machine-specific bits ────────────────────────────────────────────────
   networking.hostName = "nixos";
 
-  # tuigreet has always run as my user here.
-  services.greetd.settings.default_session.user = "haywan";
-
   # xtool runs usbmuxd inside Docker, so the host daemon stays off.
   services.usbmuxd.enable = false;
 

@@ -3,6 +3,7 @@
     ./core.nix
     ./hardware.nix
     ./desktop.nix
+    ./greeter.nix
     ./gaming.nix
     ./media.nix
     ./dev.nix

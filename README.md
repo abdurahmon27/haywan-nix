@@ -11,7 +11,8 @@ My NixOS setup — Hyprland, Gruvbox, zsh — as a flake with Home Manager, spli
 
 | | |
 |---|---|
-| Desktop | Hyprland, Waybar (top + vertical right bar), Rofi launcher, Kitty, Dunst, swww wallpaper slideshow, tuigreet login |
+| Desktop | Hyprland, Waybar (top + vertical right bar), Rofi launcher, Kitty, Dunst, swww wallpaper slideshow |
+| Login | ReGreet — a graphical Gruvbox login screen (or text-only tuigreet) |
 | Theme | Gruvbox Material, Bibata cursor, Papirus icons, JetBrains Mono Nerd Font |
 | Shell | zsh, Oh My Zsh (`git`, `z`, `sudo`), Powerlevel10k, syntax highlighting, autosuggestions |
 | Hardware | NVIDIA / AMD / Intel, PipeWire, Bluetooth, ZSA keyboard rules |
@@ -59,6 +60,8 @@ haywan = {
 
   hardware.gpu = "amd";             # nvidia | amd | intel | none
   desktop.enable = true;            # Hyprland
+  desktop.greeter = "regreet";      # graphical login; "tuigreet" for text-only
+  # desktop.greeterBackground = ./login.jpg;   # image inside your flake
 
   gaming.enable = true;             # Steam, GameMode, MangoHud
   media.obs.enable = true;          # OBS + virtual camera
