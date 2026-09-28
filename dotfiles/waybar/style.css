@@ -1,0 +1,237 @@
+/* Gruvbox Material — relaxed / medium-dark
+ * bg   #32302f   fg   #d4be98   gray #928374
+ * red  #ea6962   orn  #e78a4e   ylw  #d8a657
+ * grn  #a9b665   aqu  #89b482   blu  #7daea3   pur #d3869b
+ */
+
+* {
+  border: none;
+  border-radius: 0;
+  font-family: "JetBrainsMono Nerd Font";
+  font-size: 15px;
+  min-height: 0;
+  font-weight: 500;
+}
+
+window#waybar {
+  background: transparent;
+}
+
+window#waybar.hidden {
+  opacity: 0.2;
+}
+
+/* Workspaces */
+#workspaces {
+  margin: 5px 8px;
+  padding: 3px 5px;
+  background: rgba(50, 48, 47, 0.65);
+  border: 1px solid rgba(212, 190, 152, 0.08);
+  border-radius: 10px;
+}
+
+#workspaces button {
+  padding: 4px 10px;
+  margin: 0 3px;
+  color: #928374;
+  background: transparent;
+  border-radius: 6px;
+  transition: all 0.25s ease;
+}
+
+#workspaces button.active {
+  color: #d4be98;
+  background: rgba(124, 111, 100, 0.35);
+}
+
+#workspaces button:hover {
+  color: #e78a4e;
+  background: rgba(80, 73, 69, 0.30);
+}
+
+/* Clock - vertical right-edge bar, centered and prominent */
+#clock {
+  margin: 8px 6px;
+  padding: 14px 0;
+  background: rgba(50, 48, 47, 0.65);
+  border: 1px solid rgba(212, 190, 152, 0.10);
+  color: #d4be98;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* Rotating phrases (modules/home/desktop.nix → haywan.desktop.phrases) */
+#custom-phrases {
+  margin: 5px 8px;
+  padding: 0 28px;
+  background: rgba(50, 48, 47, 0.65);
+  border: 1px solid rgba(137, 180, 130, 0.16);
+  color: #89b482;
+  border-radius: 10px;
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Module styling - clean with native blur */
+#backlight,
+#wireplumber,
+#bluetooth,
+#network,
+#cpu,
+#memory,
+#temperature,
+#battery,
+#tray {
+  margin: 3px 5px;
+  padding: 10px 0;
+  background: rgba(50, 48, 47, 0.65);
+  border: 1px solid rgba(212, 190, 152, 0.07);
+  color: #d4be98;
+  border-radius: 10px;
+  transition: all 0.25s ease;
+  font-size: 16px;
+}
+
+#custom-launcher {
+  padding: 0 12px;
+  margin: 5px 5px;
+  color: #e78a4e;
+  font-size: 20px;
+  background: rgba(50, 48, 47, 0.55);
+  border-radius: 10px;
+  border: 1px solid rgba(231, 138, 78, 0.22);
+}
+
+/* Individual module colors */
+#backlight {
+  color: #d8a657;
+}
+
+#backlight:hover {
+  background: rgba(80, 73, 69, 0.55);
+  border-color: rgba(216, 166, 87, 0.30);
+}
+
+#wireplumber {
+  color: #a9b665;
+}
+
+#wireplumber.muted {
+  color: #928374;
+  background: rgba(80, 73, 69, 0.45);
+}
+
+#wireplumber:hover {
+  background: rgba(80, 73, 69, 0.55);
+  border-color: rgba(169, 182, 101, 0.30);
+}
+
+#bluetooth {
+  color: #7daea3;
+}
+
+#bluetooth.disabled {
+  color: #928374;
+}
+
+#bluetooth.connected {
+  color: #89b482;
+}
+
+#bluetooth:hover {
+  background: rgba(80, 73, 69, 0.55);
+  border-color: rgba(125, 174, 163, 0.30);
+}
+
+#network {
+  color: #7daea3;
+}
+
+#network.disconnected {
+  color: #ea6962;
+}
+
+#network:hover {
+  background: rgba(80, 73, 69, 0.55);
+  border-color: rgba(125, 174, 163, 0.30);
+}
+
+#cpu {
+  color: #89b482;
+}
+
+#cpu:hover {
+  background: rgba(80, 73, 69, 0.55);
+  border-color: rgba(137, 180, 130, 0.30);
+}
+
+#memory {
+  color: #d3869b;
+}
+
+#memory:hover {
+  background: rgba(80, 73, 69, 0.55);
+  border-color: rgba(211, 134, 155, 0.30);
+}
+
+#temperature {
+  color: #d8a657;
+}
+
+#temperature.critical {
+  color: #ea6962;
+  background: rgba(234, 105, 98, 0.22);
+  animation: blink 1.2s linear infinite alternate;
+}
+
+#temperature:hover {
+  background: rgba(80, 73, 69, 0.55);
+  border-color: rgba(216, 166, 87, 0.30);
+}
+
+#battery {
+  color: #a9b665;
+}
+
+#battery.warning {
+  color: #d8a657;
+}
+
+#battery.critical:not(.charging) {
+  color: #ea6962;
+  background: rgba(234, 105, 98, 0.22);
+  animation: blink 1.2s linear infinite alternate;
+}
+
+#battery.charging,
+#battery.plugged {
+  color: #89b482;
+}
+
+#battery:hover {
+  background: rgba(80, 73, 69, 0.55);
+  border-color: rgba(169, 182, 101, 0.30);
+}
+
+/* System Tray */
+#tray {
+  padding: 8px 5px;
+}
+
+#tray > .passive {
+  -gtk-icon-effect: dim;
+}
+
+#tray > .needs-attention {
+  -gtk-icon-effect: highlight;
+  background: rgba(234, 105, 98, 0.35);
+}
+
+@keyframes blink {
+  to {
+    background: rgba(234, 105, 98, 0.45);
+    color: #32302f;
+  }
+}
