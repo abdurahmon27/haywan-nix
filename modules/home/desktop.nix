@@ -54,8 +54,17 @@ let
     then cfg.phrases.file
     else "${pkgs.writeText "phrases.txt" (lib.concatLines cfg.phrases.items)}";
 
+  # After a log out / log in the previous session's portal keeps running with a dead
+  # display, and GTK apps (Waybar included) hang ~25 s waiting on it. Restart it first.
+  resetPortals = pkgs.writeShellScript "reset-portals" ''
+    ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd \
+      WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY HYPRLAND_INSTANCE_SIGNATURE
+    ${pkgs.systemd}/bin/systemctl --user stop xdg-desktop-portal-gtk xdg-desktop-portal-hyprland
+    ${pkgs.systemd}/bin/systemctl --user restart xdg-desktop-portal
+  '';
+
   autostart =
-    [ "waybar" "nm-applet --indicator" ]
+    [ "${resetPortals}; waybar" "nm-applet --indicator" ]
     ++ lib.optional (cfg.wallpapers.dir != null)
       "${lib.getExe wallpaperLoop} ${cfg.wallpapers.dir} ${toString cfg.wallpapers.interval}"
     ++ lib.optional (osConfig.haywan.remote.vnc.enable or false)
