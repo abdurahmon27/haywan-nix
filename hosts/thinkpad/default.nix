@@ -45,6 +45,14 @@
     };
   };
 
+  # Runs closed on a cooling pad — don't suspend when the lid shuts.
+  # (Renamed in 26.05: services.logind.lidSwitch -> settings.Login.HandleLidSwitch)
+  services.logind.settings.Login = {
+    HandleLidSwitch = "ignore";
+    HandleLidSwitchExternalPower = "ignore";
+    HandleLidSwitchDocked = "ignore";
+  };
+
   # Set at install time — don't change it later.
   system.stateVersion = "26.05";
 }
