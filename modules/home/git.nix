@@ -17,9 +17,9 @@ in
 
     programs.git = {
       enable = true;
-      userName = cfg.name;
-      userEmail = cfg.email;
-      extraConfig = {
+      settings = {
+        user.name = cfg.name;
+        user.email = cfg.email;
         init.defaultBranch = "main";
         credential."https://github.com".helper = ghHelper;
         credential."https://gist.github.com".helper = ghHelper;

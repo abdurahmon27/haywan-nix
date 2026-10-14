@@ -10,16 +10,16 @@ let
 
   wallpaperLoop = pkgs.writeShellApplication {
     name = "wallpaper-loop";
-    runtimeInputs = with pkgs; [ swww coreutils procps findutils ];
+    runtimeInputs = with pkgs; [ awww coreutils procps findutils ];
     text = ''
-      # Cycles the wallpapers in a folder with smooth swww transitions, forever.
+      # Cycles the wallpapers in a folder with smooth awww transitions, forever.
       dir="$1"
       interval="$2"
 
-      if ! pgrep -x swww-daemon >/dev/null; then
-        swww-daemon &
+      if ! pgrep -x awww-daemon >/dev/null; then
+        awww-daemon &
         for _ in $(seq 1 50); do
-          swww query >/dev/null 2>&1 && break
+          awww query >/dev/null 2>&1 && break
           sleep 0.1
         done
       fi
@@ -34,7 +34,7 @@ let
       while true; do
         mapfile -t shuffled < <(printf '%s\n' "''${images[@]}" | shuf)
         for img in "''${shuffled[@]}"; do
-          swww img "$img" \
+          awww img "$img" \
             --transition-type grow --transition-fps 60 --transition-step 90 \
             --transition-pos "0.70,0.57"
           sleep "$interval"

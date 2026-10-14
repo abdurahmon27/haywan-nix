@@ -133,10 +133,10 @@ in
         libGL
         libgcc
         glibc
-        xorg.libX11
-        xorg.libXcursor
-        xorg.libXrandr
-        xorg.libXi
+        libx11
+        libxcursor
+        libxrandr
+        libxi
         libglvnd
       ];
     };

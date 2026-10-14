@@ -50,7 +50,7 @@ in
     fonts.packages = with pkgs; [
       noto-fonts
       noto-fonts-cjk-sans
-      noto-fonts-emoji
+      noto-fonts-color-emoji
       font-awesome
       nerd-fonts.fira-code
       nerd-fonts.jetbrains-mono
@@ -59,8 +59,8 @@ in
     environment.systemPackages = with pkgs; [
       # bar, launcher, wallpaper, notifications
       waybar
-      rofi-wayland
-      swww
+      rofi
+      awww
       dunst
       libnotify
       # terminal & files
