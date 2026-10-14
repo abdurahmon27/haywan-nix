@@ -40,7 +40,7 @@
     };
 
     keyboards = {
-      zsa.enable = false;
+      zsa.enable = true; # ErgoDox EZ — udev rules for Oryx and Keymapp
       appleFnKeys = false;
     };
   };

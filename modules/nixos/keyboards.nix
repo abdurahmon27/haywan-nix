@@ -12,6 +12,12 @@
     })
 
     (lib.mkIf config.haywan.keyboards.zsa.enable {
+      # The rules below hand the devices to `plugdev`, which NixOS doesn't
+      # create and nobody is in by default — without these two lines Oryx and
+      # Keymapp still fail with a permission error on an otherwise-correct setup.
+      users.groups.plugdev = { };
+      haywan.user.extraGroups = [ "plugdev" ];
+
       services.udev.extraRules = ''
         # Rules for Oryx web flashing and live training
         KERNEL=="hidraw*", ATTRS{idVendor}=="16c0", MODE="0664", GROUP="plugdev"
