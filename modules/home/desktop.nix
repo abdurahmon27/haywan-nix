@@ -8,15 +8,23 @@ let
 
   menu = "rofi -show drun -theme ~/.config/rofi/launcher.rasi";
 
+  # One shared FIFO: the loop waits on it instead of sleeping, so `wallpaper-next`
+  # can cut a nap short and advance immediately.
+  wallpaperFifo = "\${XDG_RUNTIME_DIR:-/tmp}/wallpaper-loop.fifo";
+
   wallpaperLoop = pkgs.writeShellApplication {
     name = "wallpaper-loop";
-    runtimeInputs = with pkgs; [ awww coreutils procps findutils ];
+    runtimeInputs = with pkgs; [ awww coreutils findutils ];
     text = ''
-      # Cycles the wallpapers in a folder with smooth awww transitions, forever.
+      # Cycles the wallpapers in a folder, forever, with a different awww
+      # animation every time.
       dir="$1"
       interval="$2"
+      fifo="${wallpaperFifo}"
 
-      if ! pgrep -x awww-daemon >/dev/null; then
+      # Ask the daemon directly -- its process name is the Nix wrapper's
+      # (.awww-daemon-wr), so pgrep would miss it and we'd spawn a doomed second one.
+      if ! awww query >/dev/null 2>&1; then
         awww-daemon &
         for _ in $(seq 1 50); do
           awww query >/dev/null 2>&1 && break
@@ -31,15 +39,61 @@ let
         exit 1
       fi
 
+      # Hold both ends open so `wallpaper-next` never blocks on an absent reader.
+      rm -f "$fifo"
+      mkfifo "$fifo"
+      exec 3<>"$fifo"
+      trap 'rm -f "$fifo"' EXIT
+
+      transitions=(wipe wave grow outer center any left right top bottom fade)
+
       while true; do
         mapfile -t shuffled < <(printf '%s\n' "''${images[@]}" | shuf)
         for img in "''${shuffled[@]}"; do
+          transition=$(printf '%s\n' "''${transitions[@]}" | shuf -n1)
+
+          # wipe/wave sweep at this angle; grow/outer open from this point.
+          angle=$((RANDOM % 360))
+          pos="0.$(printf '%02d' $((RANDOM % 100))),0.$(printf '%02d' $((RANDOM % 100)))"
+
+          # Nearest keeps pixel art crisp; everything else wants a smooth filter.
+          case "$(basename "$img")" in
+            pixel-*) filter=Nearest ;;
+            *)       filter=Lanczos3 ;;
+          esac
+
           awww img "$img" \
-            --transition-type grow --transition-fps 60 --transition-step 90 \
-            --transition-pos "0.70,0.57"
-          sleep "$interval"
+            --transition-type "$transition" \
+            --transition-duration 2 \
+            --transition-fps 60 \
+            --transition-step 90 \
+            --transition-angle "$angle" \
+            --transition-pos "$pos" \
+            --transition-bezier .25,.1,.25,1 \
+            --resize crop \
+            --filter "$filter" \
+            --fill-color 1d2021
+
+          # Wake early if someone pressed the "next wallpaper" bind, then swallow
+          # any extra presses that piled up during the animation.
+          if read -r -t "$interval" -u 3 _; then
+            while read -r -t 0 -u 3 _; do :; done
+          fi
         done
       done
+    '';
+  };
+
+  wallpaperNext = pkgs.writeShellApplication {
+    name = "wallpaper-next";
+    runtimeInputs = with pkgs; [ coreutils ];
+    text = ''
+      fifo="${wallpaperFifo}"
+      if [ ! -p "$fifo" ]; then
+        echo "wallpaper-next: no wallpaper-loop running" >&2
+        exit 1
+      fi
+      printf 'next\n' > "$fifo"
     '';
   };
 
@@ -131,6 +185,8 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    home.packages = lib.optional (cfg.wallpapers.dir != null) wallpaperNext;
+
     # ── Hyprland ────────────────────────────────────────────────────────────
     xdg.configFile = {
       "hypr/hyprland.conf".text = ''
@@ -153,6 +209,7 @@ in
         $fileManager = ${cfg.fileManager}
         $menu = ${menu}
         $browser = ${cfg.browser}
+        $wallpaperNext = ${lib.getExe wallpaperNext}
       '';
 
       "hypr/modules/monitors.conf".text =

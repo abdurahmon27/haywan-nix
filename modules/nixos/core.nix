@@ -79,13 +79,15 @@ in
 
     nixpkgs.config.allowUnfree = true;
 
-    # Newer Telegram from nixos-unstable; everything else stays on the stable channel.
+    # Newer Telegram and Claude Code from nixos-unstable; everything else stays
+    # on the stable channel. claude-code ships several releases a week, so the
+    # stable channel lags it badly — 2.1.223 on 26.05 vs 2.1.296 on unstable.
     nixpkgs.overlays = [
       (final: prev: {
         inherit (import inputs.nixpkgs-unstable {
           inherit (prev.stdenv.hostPlatform) system;
           config.allowUnfree = true;
-        }) telegram-desktop;
+        }) telegram-desktop claude-code;
       })
     ];
 

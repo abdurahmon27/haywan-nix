@@ -27,7 +27,10 @@
         "eDP-1, 1920x1080@144, 0x0, 1" # laptop
         "DP-1, 1920x1080@75, 0x-1080, 1" # Xiaomi, above the laptop
       ];
-      wallpapers.dir = "/home/haywan/Wallpapers/gruvbox-pixelart";
+      wallpapers = {
+        dir = "/home/haywan/Wallpapers/gruvbox";
+        interval = 600;
+      };
 
       # Mine are dhikrs, read from my Telegram bot's source (not part of this repo).
       phrases = {
@@ -46,7 +49,7 @@
   home.packages = with pkgs; [
     sublime
     anydesk
-    neofetch
+    fastfetch # neofetch was removed from nixpkgs (unmaintained upstream)
     clock-rs
     jp2a
     # other Wayland toys I play with

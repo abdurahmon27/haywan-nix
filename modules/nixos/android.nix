@@ -36,10 +36,11 @@ in
   config = lib.mkIf cfg.enable {
     nixpkgs.config.android_sdk.accept_license = true;
 
-    programs.adb.enable = true;
-    haywan.user.extraGroups = [ "adbusers" "kvm" ];
+    # systemd 258 handles the USB uaccess rules, so `programs.adb` (and its
+    # adbusers group) is gone; adb now just comes from android-tools.
+    haywan.user.extraGroups = [ "kvm" ];
 
-    environment.systemPackages = [ androidSdk pkgs.openjdk ];
+    environment.systemPackages = [ androidSdk pkgs.openjdk pkgs.android-tools ];
 
     environment.variables = {
       ANDROID_HOME = sdkRoot;

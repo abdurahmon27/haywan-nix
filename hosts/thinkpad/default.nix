@@ -45,6 +45,16 @@
     };
   };
 
+  # Lives plugged in, so stop charging at 80% — a cell parked at 100% loses
+  # capacity faster. thinkpad_acpi exposes the EC thresholds; a udev rule
+  # re-applies them when the battery reappears after a resume, which a
+  # one-shot boot service would miss.
+  # Before travelling, for a full charge:
+  #   echo 100 | sudo tee /sys/class/power_supply/BAT0/charge_control_end_threshold
+  services.udev.extraRules = ''
+    ACTION=="add", SUBSYSTEM=="power_supply", KERNEL=="BAT0", ATTR{charge_control_start_threshold}="75", ATTR{charge_control_end_threshold}="80"
+  '';
+
   # Runs closed on a cooling pad — don't suspend when the lid shuts.
   # (Renamed in 26.05: services.logind.lidSwitch -> settings.Login.HandleLidSwitch)
   services.logind.settings.Login = {
