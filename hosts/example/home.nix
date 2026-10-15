@@ -33,6 +33,9 @@
         items = [ "Stay curious" "Drink some water" "Ship it" ];
       };
     };
+
+    # Claude Code usage in the bar; holds non-urgent prompts when you're nearly out.
+    claudeLimits.enable = false;
   };
 
   # Anything else from https://search.nixos.org/packages

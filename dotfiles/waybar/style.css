@@ -74,13 +74,34 @@ window#waybar.hidden {
   font-weight: 500;
 }
 
+/* Claude Code usage (modules/home/claude-limits.nix → haywan.claudeLimits) */
+#custom-claude-limits {
+  margin: 5px 0 5px 8px;
+  padding: 0 14px;
+  background: rgba(50, 48, 47, 0.65);
+  border: 1px solid rgba(212, 190, 152, 0.16);
+  color: #d4be98;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+#custom-claude-limits.warn {
+  color: #e78a4e;
+}
+
+#custom-claude-limits.critical {
+  color: #ea6962;
+  border-color: rgba(234, 105, 98, 0.4);
+}
+
 /* Module styling - clean with native blur */
 #backlight,
-#wireplumber,
-#bluetooth,
+#pulseaudio,
+#custom-bluetooth,
 #network,
 #cpu,
 #memory,
+#disk,
 #temperature,
 #battery,
 #tray {
@@ -114,33 +135,33 @@ window#waybar.hidden {
   border-color: rgba(216, 166, 87, 0.30);
 }
 
-#wireplumber {
+#pulseaudio {
   color: #a9b665;
 }
 
-#wireplumber.muted {
+#pulseaudio.muted {
   color: #928374;
   background: rgba(80, 73, 69, 0.45);
 }
 
-#wireplumber:hover {
+#pulseaudio:hover {
   background: rgba(80, 73, 69, 0.55);
   border-color: rgba(169, 182, 101, 0.30);
 }
 
-#bluetooth {
+#custom-bluetooth {
   color: #7daea3;
 }
 
-#bluetooth.disabled {
+#custom-bluetooth.off {
   color: #928374;
 }
 
-#bluetooth.connected {
+#custom-bluetooth.connected {
   color: #89b482;
 }
 
-#bluetooth:hover {
+#custom-bluetooth:hover {
   background: rgba(80, 73, 69, 0.55);
   border-color: rgba(125, 174, 163, 0.30);
 }
@@ -215,6 +236,56 @@ window#waybar.hidden {
   border-color: rgba(169, 182, 101, 0.30);
 }
 
+#disk {
+  color: #d4be98;
+}
+
+#disk.warning {
+  color: #e78a4e;
+}
+
+#disk.critical {
+  color: #ea6962;
+  background: rgba(234, 105, 98, 0.22);
+  animation: blink 1.2s linear infinite alternate;
+}
+
+#disk:hover {
+  background: rgba(80, 73, 69, 0.55);
+  border-color: rgba(212, 190, 152, 0.30);
+}
+
+/* Notification bell, right under the clock */
+#custom-notifications {
+  margin: 3px 5px;
+  padding: 10px 0;
+  background: rgba(50, 48, 47, 0.65);
+  border: 1px solid rgba(212, 190, 152, 0.07);
+  border-radius: 10px;
+  color: #928374;
+  font-size: 18px;
+  transition: all 0.25s ease;
+}
+
+#custom-notifications.notification {
+  color: #d8a657;
+}
+
+#custom-notifications.dnd-none,
+#custom-notifications.dnd-notification {
+  color: #665c54;
+}
+
+/* A few quick pulses when something new arrives */
+#custom-notifications.new {
+  animation: bell-ring 0.3s ease-in-out 8 alternate;
+}
+
+#custom-notifications:hover {
+  background: rgba(80, 73, 69, 0.55);
+  border-color: rgba(216, 166, 87, 0.30);
+}
+
 /* System Tray */
 #tray {
   padding: 8px 5px;
@@ -227,6 +298,13 @@ window#waybar.hidden {
 #tray > .needs-attention {
   -gtk-icon-effect: highlight;
   background: rgba(234, 105, 98, 0.35);
+}
+
+@keyframes bell-ring {
+  to {
+    color: #32302f;
+    background: rgba(216, 166, 87, 0.85);
+  }
 }
 
 @keyframes blink {

@@ -99,13 +99,27 @@ let
 
   phrasesScript = pkgs.writeShellApplication {
     name = "waybar-phrases";
-    runtimeInputs = with pkgs; [ coreutils gnugrep jq ];
+    runtimeInputs = with pkgs; [ coreutils gnugrep jq procps ];
     text = builtins.readFile (dotfiles + "/waybar/phrases.sh");
+  };
+
+  notificationsScript = pkgs.writeShellApplication {
+    name = "waybar-notifications";
+    runtimeInputs = with pkgs; [ jq swaynotificationcenter ];
+    text = builtins.readFile (dotfiles + "/waybar/notifications.sh");
+  };
+
+  bluetoothScript = pkgs.writeShellApplication {
+    name = "waybar-bluetooth";
+    runtimeInputs = with pkgs; [ bluez gawk jq ];
+    text = builtins.readFile (dotfiles + "/waybar/bluetooth.sh");
   };
 
   phrasesFile =
     if cfg.phrases.file != null
     then cfg.phrases.file
+    else if cfg.phrases.remote != null
+    then "${config.xdg.cacheHome}/waybar-phrases"
     else "${pkgs.writeText "phrases.txt" (lib.concatLines cfg.phrases.items)}";
 
   # After a log out / log in the previous session's portal keeps running with a dead
@@ -175,6 +189,15 @@ in
         default = null;
         description = "Read phrases from this file at runtime instead of `items` (one per line).";
       };
+      remote = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        example = "myserver:/srv/bot/phrases.txt";
+        description = ''
+          Fetch the phrases file with scp from this `host:path`, at login and every hour.
+          Uses your ~/.ssh/config, so the key must work without a passphrase prompt.
+        '';
+      };
       pattern = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
@@ -185,7 +208,29 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = lib.optional (cfg.wallpapers.dir != null) wallpaperNext;
+    home.packages = [ pkgs.gdu ] # the storage module opens it
+      ++ lib.optional (cfg.wallpapers.dir != null) wallpaperNext;
+
+    # Keeps a local copy of `phrases.remote`; the bar keeps the last copy while offline.
+    systemd.user = lib.mkIf (cfg.phrases.enable && cfg.phrases.remote != null) {
+      services.waybar-phrases-sync = {
+        Unit.Description = "Fetch Waybar phrases from ${cfg.phrases.remote}";
+        Service = {
+          Type = "oneshot";
+          ExecStart = pkgs.writeShellScript "waybar-phrases-sync" ''
+            tmp="${phrasesFile}.part"
+            ${pkgs.openssh}/bin/scp -q -o BatchMode=yes -o ConnectTimeout=15 \
+              ${lib.escapeShellArg cfg.phrases.remote} "$tmp" && mv "$tmp" ${lib.escapeShellArg phrasesFile}
+            ${pkgs.procps}/bin/pkill -RTMIN+8 waybar || true
+          '';
+        };
+      };
+      timers.waybar-phrases-sync = {
+        Unit.Description = "Fetch Waybar phrases hourly";
+        Timer = { OnStartupSec = "10s"; OnUnitActiveSec = "1h"; Persistent = true; };
+        Install.WantedBy = [ "timers.target" ];
+      };
+    };
 
     # ── Hyprland ────────────────────────────────────────────────────────────
     xdg.configFile = {
@@ -254,7 +299,10 @@ in
             exec = lib.escapeShellArgs ([ (lib.getExe phrasesScript) phrasesFile ]
               ++ lib.optional (cfg.phrases.pattern != null) cfg.phrases.pattern);
             return-type = "json";
-            interval = 900;
+            # Cheap to run; checking every minute makes the hourly change land on the hour.
+            interval = 60;
+            signal = 8;
+            on-click = "${lib.getExe phrasesScript} --next";
             tooltip = true;
           };
         };
@@ -263,36 +311,54 @@ in
           layer = "top";
           position = "right";
           width = 52;
-          modules-left = [ "clock" ];
+          modules-left = [ "clock" "custom/notifications" ];
           modules-center = [ ];
-          modules-right = [ "backlight" "wireplumber" "bluetooth" "network" "cpu" "memory" "temperature" "battery" "tray" ];
+          modules-right = [ "backlight" "pulseaudio" "custom/bluetooth" "network" "cpu" "memory" "disk" "temperature" "battery" "tray" ];
 
           clock = {
             format = "{:%H\n•\n%M}";
             format-alt = "{:%m\n•\n%d}";
             tooltip-format = "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>";
           };
-          wireplumber = {
-            tooltip = true;
-            tooltip-format = "Volume: {volume}%";
-            scroll-step = 5;
+          # Rings for a few seconds when something arrives; click for the panel.
+          "custom/notifications" = {
+            exec = lib.getExe notificationsScript;
+            return-type = "json";
+            restart-interval = 2;
             format = "{icon}";
-            format-muted = "󰝟";
-            on-click = "pavucontrol";
             format-icons = {
-              default = [ "󰕿" "󰖀" "󰕾" ];
-              headphone = "󰋋";
-              headset = "󰋎";
+              none = "󰂜";
+              notification = "󱅫";
+              dnd-none = "󰂛";
+              dnd-notification = "󰂛";
+              inhibited-none = "󰂜";
+              inhibited-notification = "󱅫";
+              dnd-inhibited-none = "󰂛";
+              dnd-inhibited-notification = "󰂛";
             };
+            tooltip = true;
+            on-click = "swaync-client -t -sw";
+            on-click-right = "swaync-client -d -sw";
+            on-click-middle = "swaync-client -C -sw";
+            escape = true;
           };
-          bluetooth = {
-            format = "󰂲";
-            format-on = "󰂯";
-            format-connected = "󰂱";
-            format-disabled = "󰂲";
-            tooltip-format = "{controller_alias}\t{controller_address}";
-            tooltip-format-connected = "{controller_alias}\t{controller_address}\n\n{device_enumerate}";
-            tooltip-format-enumerate-connected = "{device_alias}\t{device_address}";
+          # Volume always shows a speaker: the Bluetooth widget right below shows
+          # the device. pulseaudio rather than wireplumber for {desc} (the output) in the tooltip.
+          pulseaudio = {
+            format = "{icon}\n<small>{volume}</small>";
+            format-muted = "󰖁\n<small>--</small>";
+            format-icons.default = [ "󰕿" "󰖀" "󰕾" ];
+            justify = "center";
+            tooltip-format = "{desc}\n{volume}%";
+            scroll-step = 5;
+            on-click = "pavucontrol";
+            on-click-right = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
+          };
+          "custom/bluetooth" = {
+            exec = lib.getExe bluetoothScript;
+            return-type = "json";
+            interval = 5;
+            justify = "center";
             on-click = "blueman-manager";
           };
           network = {
@@ -338,6 +404,17 @@ in
             tooltip = true;
             tooltip-format = "RAM: {used:0.1f}G / {total:0.1f}G\nSwap: {swapUsed:0.1f}G / {swapTotal:0.1f}G";
           };
+          # Free space on /, since that's the number to watch on a small SSD.
+          disk = {
+            path = "/";
+            interval = 60;
+            unit = "GiB";
+            format = "󰋊\n<small>{specific_free:0.0f}G</small>";
+            justify = "center";
+            states = { warning = 80; critical = 90; };
+            tooltip-format = "{used} used of {total}\n{free} free ({percentage_free}%)\n\nClick to see what's taking space";
+            on-click = "${cfg.terminal} -e gdu ~";
+          };
           temperature = {
             critical-threshold = 80;
             format = "{icon}";
@@ -355,17 +432,33 @@ in
     };
 
     # ── Notifications ───────────────────────────────────────────────────────
-    services.dunst = {
+    # Small popups that leave quickly; everything stays in the panel (Super+N).
+    services.swaync = {
       enable = true;
-      settings.global = {
-        font = "JetBrainsMono Nerd Font 11";
-        corner_radius = 10;
-        frame_width = 1;
-        frame_color = "#504945";
-        background = "#32302f";
-        foreground = "#d4be98";
-        offset = "16x16";
+      settings = {
+        positionX = "right";
+        positionY = "top";
+        notification-window-width = 340;
+        control-center-width = 380;
+        control-center-height = 560;
+        control-center-margin-top = 8;
+        control-center-margin-right = 8;
+        control-center-margin-bottom = 8;
+        timeout = 4;
+        timeout-low = 2;
+        timeout-critical = 0; # stays until dismissed
+        notification-body-image-height = 80;
+        notification-body-image-width = 160;
+        hide-on-clear = true;
+        widgets = [ "title" "dnd" "notifications" ];
+        widget-config = {
+          title = { text = "Notifications"; clear-all-button = true; button-text = "Clear"; };
+          dnd.text = "Do not disturb";
+        };
       };
+      style = ''
+        @import url("file://${pkgs.swaynotificationcenter}/etc/xdg/swaync/style.css");
+      '' + builtins.readFile (dotfiles + "/swaync/style.css");
     };
   };
 }

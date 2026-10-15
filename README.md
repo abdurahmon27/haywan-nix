@@ -11,7 +11,7 @@ My NixOS setup — Hyprland, Gruvbox, zsh — as a flake with Home Manager, spli
 
 | | |
 |---|---|
-| Desktop | Hyprland, Waybar (top + vertical right bar), Rofi launcher, Kitty, Dunst, swww wallpaper slideshow |
+| Desktop | Hyprland, Waybar (top + vertical right bar), Rofi launcher, Kitty, SwayNotificationCenter, swww wallpaper slideshow |
 | Login | ReGreet — a graphical Gruvbox login screen (or text-only tuigreet) |
 | Theme | Gruvbox Material, Bibata cursor, Papirus icons, JetBrains Mono Nerd Font |
 | Shell | zsh, Oh My Zsh (`git`, `z`, `sudo`), Powerlevel10k, syntax highlighting, autosuggestions |
@@ -135,6 +135,32 @@ haywan.desktop.phrases = {
 };
 ```
 
+### Claude Code usage limits
+
+Shows how much of your Claude plan you've used in the top bar, and adds a Claude Code hook that steps in as you get close:
+
+| Usage | What happens |
+|---|---|
+| under 70% | nothing |
+| 70–90% | a note on each prompt suggesting `/model sonnet` or `/model haiku` |
+| 90–98% | Haiku reads the prompt; if it isn't urgent, it's held until the limit resets |
+| over 98% | every prompt is held |
+
+Start a prompt with `!urgent` to always send it.
+
+```nix
+haywan.claudeLimits = {
+  enable = true;
+  # Several accounts? Each runs with its own CLAUDE_CONFIG_DIR:
+  accounts = [
+    { name = "personal"; configDir = ".claude"; label = "󰚩"; }
+    { name = "work"; configDir = ".config/claude-work"; label = "W"; }
+  ];
+};
+```
+
+Accounts never mix: each is checked with its own login, the hook only looks at the account its session runs as, and the Haiku check runs on that same account without saving a transcript. Usage comes from an undocumented Anthropic endpoint, so it may change without notice.
+
 ## Keybinds
 
 | Keys | Action |
@@ -149,6 +175,8 @@ haywan.desktop.phrases = {
 | `Super + 1…0` | Switch workspace |
 | `Super + Shift + 1…0` | Move window to workspace |
 | `Super + Shift + S` | Screenshot a region to the clipboard |
+| `Super + N` | Notification panel (or click the bell) |
+| `Super + Shift + N` | Do not disturb (or right-click the bell) |
 | `Super + Shift + Q` | Exit Hyprland |
 
 Edit them in [`dotfiles/hypr/binds.conf`](dotfiles/hypr/binds.conf).

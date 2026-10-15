@@ -1,0 +1,37 @@
+/* SwayNotificationCenter in Gruvbox Material — compact for a 14" screen.
+ * modules/home/desktop.nix puts swaync's default style in front of this file,
+ * so only the palette and sizes are changed here.
+ */
+
+:root {
+  --cc-bg: rgba(40, 40, 40, 0.92);
+  --noti-border-color: rgba(212, 190, 152, 0.12);
+  --noti-bg: 50, 48, 47;
+  --noti-bg-alpha: 0.95;
+  --noti-bg-darker: rgb(40, 40, 40);
+  --noti-bg-hover: rgb(60, 56, 54);
+  --noti-bg-focus: rgba(80, 73, 69, 0.6);
+  --noti-close-bg: rgb(80, 73, 69);
+  --noti-close-bg-hover: rgb(102, 92, 84);
+  --text-color: rgb(212, 190, 152);
+  --text-color-disabled: rgb(146, 131, 116);
+  --bg-selected: rgb(231, 138, 78);
+  --notification-icon-size: 40px;
+  --notification-group-icon-size: 24px;
+  --border-radius: 10px;
+  --notification-shadow: none;
+  --font-size-body: 13px;
+  --font-size-summary: 14px;
+}
+
+* {
+  font-family: "JetBrainsMono Nerd Font";
+}
+
+.notification-row .notification-background .notification.critical {
+  border: 1px solid rgba(234, 105, 98, 0.6);
+}
+
+.notification-row .notification-background .notification.low {
+  opacity: 0.85;
+}

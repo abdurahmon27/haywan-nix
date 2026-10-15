@@ -8,6 +8,7 @@
     ./desktop.nix
     ./theme.nix
     ./obs.nix
+    ./claude-limits.nix
   ];
 
   home.stateVersion = osConfig.system.stateVersion;
