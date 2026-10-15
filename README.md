@@ -175,6 +175,7 @@ Accounts never mix: each is checked with its own login, the hook only looks at t
 | `Super + 1…0` | Switch workspace |
 | `Super + Shift + 1…0` | Move window to workspace |
 | `Super + Shift + S` | Screenshot a region to the clipboard |
+| `Super + Shift + A` | Screenshot the whole screen to the clipboard |
 | `Super + N` | Notification panel (or click the bell) |
 | `Super + Shift + N` | Do not disturb (or right-click the bell) |
 | `Super + Shift + Q` | Exit Hyprland |
