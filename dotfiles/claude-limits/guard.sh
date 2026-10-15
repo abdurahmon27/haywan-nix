@@ -21,7 +21,7 @@ name=$(jq -r --arg d "$dir" 'first(.accounts[] | select(.dir == $d) | .name) // 
 cache="${XDG_CACHE_HOME:-$HOME/.cache}/claude-limits/$name.json"
 now=$(date +%s)
 checked=$(jq -r '.checked // 0' "$cache" 2>/dev/null || echo 0)
-if [ $((now - checked)) -gt 120 ]; then
+if [ $((now - checked)) -gt 300 ]; then
   claude-limits-fetch "$name" || true
 fi
 [ -r "$cache" ] || exit 0

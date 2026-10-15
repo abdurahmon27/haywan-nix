@@ -17,11 +17,12 @@ jq -c --argjson a "$accounts" '
   def pct: if . == null then "?" else "\(floor)%" end;
   def line($w; $v): "  \($w): \($v.pct | pct) · resets \($v.resets | at)";
 
-  .thresholds as $t
+  (now | floor) as $now
+  | .thresholds as $t
   | ($a | map(. + { peak: ([.five_hour.pct, .seven_day.pct] | map(select(. != null)) | max) })) as $a
   | ($a | map(.peak // 0) | max // 0) as $top
   | {
-      text: ($a | map("\(.label) \(.peak | pct)\(if .ok then "" else "!" end)") | join("  ")),
+      text: ($a | map("\(.label) \(.peak | pct)\(if $now - (.updated // 0) > 900 then "!" else "" end)") | join("  ")),
       tooltip: ($a | map(
           "\(.name)\(if .ok then "" else " (\(.error))" end)\n"
           + line("5h"; .five_hour) + "\n" + line("week"; .seven_day)

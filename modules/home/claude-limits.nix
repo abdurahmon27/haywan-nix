@@ -24,7 +24,7 @@ let
     '' + builtins.readFile (dotfiles + "/claude-limits/${file}");
   };
 
-  fetch = script "claude-limits-fetch" "fetch.sh" (with pkgs; [ coreutils curl jq ]);
+  fetch = script "claude-limits-fetch" "fetch.sh" (with pkgs; [ coreutils curl gawk jq ]);
   # `claude` itself comes from your PATH, so the hook uses whatever version you run.
   guard = script "claude-limits-guard" "guard.sh" (with pkgs; [ coreutils gnugrep jq fetch ]);
   bar = script "claude-limits-waybar" "waybar.sh" (with pkgs; [ coreutils jq ]);
@@ -150,8 +150,8 @@ in
         };
       };
       systemd.user.timers.claude-limits-fetch = {
-        Unit.Description = "Fetch Claude Code usage limits every 2 minutes";
-        Timer = { OnStartupSec = "15s"; OnUnitActiveSec = "2min"; };
+        Unit.Description = "Fetch Claude Code usage limits every 5 minutes";
+        Timer = { OnStartupSec = "15s"; OnUnitActiveSec = "5min"; };
         Install.WantedBy = [ "timers.target" ];
       };
 
