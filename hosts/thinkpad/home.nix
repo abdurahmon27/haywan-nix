@@ -7,10 +7,10 @@ let
   t3-code =
     let
       pname = "t3-code";
-      version = "0.0.45";
+      version = "0.0.46-nightly.20261015.3145";
       src = pkgs.fetchurl {
         url = "https://github.com/pingdotgg/t3code/releases/download/v${version}/T3-Code-${version}-x86_64.AppImage";
-        hash = "sha256-q3sKhtHqZXzMFitgt3LGH3C8fIueJZtGk51Tuzj6oCo=";
+        hash = "sha256-S2hDSJ3yXzEwWokhFZsTBklvwQ8+0XKFvNvtj8a6kiM=";
       };
       contents = pkgs.appimageTools.extractType2 { inherit pname version src; };
     in
