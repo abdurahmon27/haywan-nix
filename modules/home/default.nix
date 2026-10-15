@@ -7,6 +7,7 @@
     ./apps.nix
     ./desktop.nix
     ./theme.nix
+    ./obs.nix
   ];
 
   home.stateVersion = osConfig.system.stateVersion;

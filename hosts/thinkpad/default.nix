@@ -1,5 +1,5 @@
 # haywan's ThinkPad — Intel i5-10210U, Intel UHD graphics, Hyprland.
-# Lean on purpose: no Android SDK, no Steam, no OBS, no MongoDB — disk is tight.
+# Lean on purpose: no Android SDK, no Steam, no MongoDB — disk is tight.
 { config, ... }:
 
 {
@@ -20,9 +20,9 @@
       keyboard.options = "altwin:super_win";
     };
 
-    # Heavy extras, all off.
+    # Heavy extras — only OBS is on.
     gaming.enable = false;
-    media.obs.enable = false;
+    media.obs.enable = true; # Stream + Recording profiles, VAAPI on the iGPU
 
     dev = {
       docker.enable = true;

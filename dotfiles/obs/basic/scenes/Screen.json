@@ -1,0 +1,66 @@
+{
+    "name": "Screen",
+    "current_scene": "Screen",
+    "current_program_scene": "Screen",
+    "scene_order": [{ "name": "Screen" }],
+    "DesktopAudioDevice1": {
+        "id": "pulse_output_capture",
+        "versioned_id": "pulse_output_capture",
+        "name": "Desktop Audio",
+        "uuid": "6d9c1f2e-0b1a-4c3e-9f10-000000000001",
+        "settings": { "device_id": "default" },
+        "mixers": 3
+    },
+    "AuxAudioDevice1": {
+        "id": "pulse_input_capture",
+        "versioned_id": "pulse_input_capture",
+        "name": "Mic/Aux",
+        "uuid": "6d9c1f2e-0b1a-4c3e-9f10-000000000002",
+        "settings": { "device_id": "default" },
+        "mixers": 5,
+        "filters": [
+            {
+                "id": "noise_suppress_filter_v2",
+                "versioned_id": "noise_suppress_filter_v2",
+                "name": "Noise Suppression",
+                "uuid": "6d9c1f2e-0b1a-4c3e-9f10-000000000005",
+                "settings": { "method": "rnnoise" }
+            }
+        ]
+    },
+    "sources": [
+        {
+            "id": "scene",
+            "versioned_id": "scene",
+            "name": "Screen",
+            "uuid": "6d9c1f2e-0b1a-4c3e-9f10-000000000003",
+            "settings": {
+                "id_counter": 1,
+                "custom_size": false,
+                "items": [
+                    {
+                        "name": "Display",
+                        "source_uuid": "6d9c1f2e-0b1a-4c3e-9f10-000000000004",
+                        "visible": true,
+                        "locked": false,
+                        "id": 1,
+                        "pos": { "x": 0.0, "y": 0.0 },
+                        "rot": 0.0,
+                        "scale": { "x": 1.0, "y": 1.0 },
+                        "align": 5,
+                        "bounds_type": 2,
+                        "bounds_align": 0,
+                        "bounds": { "x": 1920.0, "y": 1080.0 }
+                    }
+                ]
+            }
+        },
+        {
+            "id": "pipewire-screen-capture-source",
+            "versioned_id": "pipewire-screen-capture-source",
+            "name": "Display",
+            "uuid": "6d9c1f2e-0b1a-4c3e-9f10-000000000004",
+            "settings": { "ShowCursor": true }
+        }
+    ]
+}

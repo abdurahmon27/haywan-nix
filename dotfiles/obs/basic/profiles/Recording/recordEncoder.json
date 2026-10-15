@@ -1,0 +1,8 @@
+{
+    "vaapi_device": "/dev/dri/renderD128",
+    "profile": 100,
+    "rate_control": "CQP",
+    "qp": 20,
+    "keyint_sec": 2,
+    "bf": 0
+}
