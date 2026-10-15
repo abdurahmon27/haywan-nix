@@ -1,0 +1,2 @@
+Curated from https://github.com/AngelJumbo/gruvbox-wallpapers (CC0/see repo).
+Filtered for gruvbox palette match, >=1920px wide, 16:9-ish.
