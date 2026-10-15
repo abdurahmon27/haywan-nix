@@ -44,6 +44,9 @@ in
       extraPortals = with pkgs; [ xdg-desktop-portal-hyprland xdg-desktop-portal-gtk ];
     };
 
+    # Home Manager writes GTK settings (dark mode, icons) through dconf.
+    programs.dconf.enable = true;
+
     services.gvfs.enable = true;
     services.tumbler.enable = true;
 
@@ -78,7 +81,7 @@ in
       # theme
       bibata-cursors
       gruvbox-gtk-theme
-      papirus-icon-theme
+      gruvbox-plus-icons
     ];
 
     environment.variables = {
@@ -86,7 +89,6 @@ in
       XKB_DEFAULT_OPTIONS = cfg.keyboard.options;
       XCURSOR_THEME = "Bibata-Modern-Ice";
       XCURSOR_SIZE = "24";
-      GTK_THEME = "Gruvbox-Dark";
       XDG_CURRENT_DESKTOP = "Hyprland";
     };
 

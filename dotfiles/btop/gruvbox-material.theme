@@ -1,0 +1,57 @@
+# Gruvbox Material (medium-dark) — same palette as kitty, Waybar and Hyprland.
+# bg #32302f  fg #d4be98  gray #928374
+# red #ea6962  orn #e78a4e  ylw #d8a657  grn #a9b665  aqu #89b482  blu #7daea3  pur #d3869b
+
+# Empty background lets kitty's own background (and opacity) show through.
+theme[main_bg]=""
+theme[main_fg]="#d4be98"
+theme[title]="#d4be98"
+theme[hi_fg]="#e78a4e"
+theme[selected_bg]="#504945"
+theme[selected_fg]="#d8a657"
+theme[inactive_fg]="#665c54"
+theme[graph_text]="#ddc7a1"
+theme[meter_bg]="#3c3836"
+theme[proc_misc]="#89b482"
+
+theme[cpu_box]="#7daea3"
+theme[mem_box]="#a9b665"
+theme[net_box]="#d3869b"
+theme[proc_box]="#e78a4e"
+theme[div_line]="#504945"
+
+theme[temp_start]="#a9b665"
+theme[temp_mid]="#d8a657"
+theme[temp_end]="#ea6962"
+
+theme[cpu_start]="#89b482"
+theme[cpu_mid]="#d8a657"
+theme[cpu_end]="#ea6962"
+
+theme[free_start]="#a9b665"
+theme[free_mid]="#89b482"
+theme[free_end]="#7daea3"
+
+theme[cached_start]="#7daea3"
+theme[cached_mid]="#89b482"
+theme[cached_end]="#a9b665"
+
+theme[available_start]="#d8a657"
+theme[available_mid]="#e78a4e"
+theme[available_end]="#ea6962"
+
+theme[used_start]="#a9b665"
+theme[used_mid]="#d8a657"
+theme[used_end]="#ea6962"
+
+theme[download_start]="#7daea3"
+theme[download_mid]="#89b482"
+theme[download_end]="#a9b665"
+
+theme[upload_start]="#d3869b"
+theme[upload_mid]="#e78a4e"
+theme[upload_end]="#ea6962"
+
+theme[process_start]="#89b482"
+theme[process_mid]="#d8a657"
+theme[process_end]="#ea6962"

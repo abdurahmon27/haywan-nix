@@ -18,7 +18,7 @@ let
     };
     cli = {
       description = "everyday terminal tools (btop, ripgrep, fd, jq, fastfetch…)";
-      packages = [ btop ripgrep fd jq tree unzip fastfetch ];
+      packages = [ ripgrep fd jq tree unzip fastfetch ];
     };
     dev = {
       description = "Node.js 22 (npm, yarn, pnpm), Python, Go, watchman and Claude Code";
@@ -55,7 +55,22 @@ in
     })
     bundles;
 
-  config.home.packages = lib.concatLists (lib.mapAttrsToList
-    (name: bundle: lib.optionals cfg.${name}.enable bundle.packages)
-    bundles);
+  config = {
+    home.packages = lib.concatLists (lib.mapAttrsToList
+      (name: bundle: lib.optionals cfg.${name}.enable bundle.packages)
+      bundles);
+
+    # btop in the same Gruvbox Material palette as kitty and Waybar.
+    programs.btop = lib.mkIf cfg.cli.enable {
+      enable = true;
+      themes.gruvbox-material = ../../dotfiles/btop/gruvbox-material.theme;
+      settings = {
+        color_theme = "gruvbox-material";
+        theme_background = false; # let kitty's background show
+        rounded_corners = true;
+        vim_keys = true;
+        update_ms = 1000;
+      };
+    };
+  };
 }

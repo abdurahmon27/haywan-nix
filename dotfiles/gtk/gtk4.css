@@ -1,0 +1,55 @@
+/* Gruvbox Material for libadwaita (Nautilus, GNOME apps).
+ * Backgrounds are translucent so Hyprland's blur shows through.
+ * bg #282828 / #32302f   fg #d4be98   gray #928374
+ * red #ea6962  orn #e78a4e  ylw #d8a657  grn #a9b665  blu #7daea3
+ */
+
+:root {
+  --accent-color: #e78a4e;
+  --accent-bg-color: #e78a4e;
+  --accent-fg-color: #1d2021;
+
+  --destructive-color: #ea6962;
+  --destructive-bg-color: #ea6962;
+  --destructive-fg-color: #1d2021;
+  --success-color: #a9b665;
+  --success-bg-color: #a9b665;
+  --success-fg-color: #1d2021;
+  --warning-color: #d8a657;
+  --warning-bg-color: #d8a657;
+  --warning-fg-color: #1d2021;
+  --error-color: #ea6962;
+  --error-bg-color: #ea6962;
+  --error-fg-color: #1d2021;
+
+  --window-bg-color: rgba(40, 40, 40, 0.78);
+  --window-fg-color: #d4be98;
+  --view-bg-color: rgba(40, 40, 40, 0.0);
+  --view-fg-color: #d4be98;
+
+  --headerbar-bg-color: rgba(50, 48, 47, 0.55);
+  --headerbar-fg-color: #d4be98;
+  --headerbar-border-color: #d4be98;
+  --headerbar-backdrop-color: rgba(40, 40, 40, 0.55);
+  --headerbar-shade-color: rgba(0, 0, 0, 0.25);
+
+  --sidebar-bg-color: rgba(29, 32, 33, 0.62);
+  --sidebar-fg-color: #d4be98;
+  --sidebar-backdrop-color: rgba(29, 32, 33, 0.55);
+  --sidebar-shade-color: rgba(0, 0, 0, 0.25);
+  --secondary-sidebar-bg-color: rgba(29, 32, 33, 0.5);
+  --secondary-sidebar-fg-color: #d4be98;
+  --secondary-sidebar-backdrop-color: rgba(29, 32, 33, 0.45);
+
+  --card-bg-color: rgba(212, 190, 152, 0.05);
+  --card-fg-color: #d4be98;
+  --thumbnail-bg-color: #32302f;
+  --thumbnail-fg-color: #d4be98;
+
+  /* Popups and dialogs stay mostly solid — text over busy wallpaper is hard to read. */
+  --dialog-bg-color: rgba(40, 40, 40, 0.94);
+  --dialog-fg-color: #d4be98;
+  --popover-bg-color: rgba(40, 40, 40, 0.94);
+  --popover-fg-color: #d4be98;
+}
+

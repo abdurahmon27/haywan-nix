@@ -6,6 +6,7 @@
     ./git.nix
     ./apps.nix
     ./desktop.nix
+    ./theme.nix
   ];
 
   home.stateVersion = osConfig.system.stateVersion;
