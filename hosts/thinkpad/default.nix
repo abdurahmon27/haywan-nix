@@ -13,7 +13,10 @@
     timeZone = "Asia/Tashkent";
     boot.loader = "systemd-boot"; # this install is EFI + systemd-boot
 
-    hardware.gpu = "intel";
+    hardware = {
+      gpu = "intel";
+      fingerprint.enable = true; # Synaptics 06cb:00bd — enroll with `fprintd-enroll`
+    };
 
     desktop = {
       enable = true;

@@ -13,6 +13,7 @@ in
     };
     audio.enable = lib.mkEnableOption "PipeWire audio" // { default = true; };
     bluetooth.enable = lib.mkEnableOption "Bluetooth + Blueman" // { default = true; };
+    fingerprint.enable = lib.mkEnableOption "the fingerprint reader for sudo and polkit prompts";
   };
 
   config = lib.mkMerge [
@@ -68,6 +69,16 @@ in
     (lib.mkIf cfg.bluetooth.enable {
       hardware.bluetooth.enable = true;
       services.blueman.enable = true;
+    })
+
+    (lib.mkIf cfg.fingerprint.enable {
+      # fprintd turns on pam_fprintd for every PAM service (sudo, su, polkit, ...).
+      services.fprintd.enable = true;
+      # The login screen keeps asking for the password: a fingerprint can't unlock
+      # the keyring, and ReGreet would sit waiting on the sensor before offering it.
+      security.pam.services.greetd.fprintAuth = false;
+      # Synaptics sensors often need a firmware update (fwupdmgr) before enrolling works.
+      services.fwupd.enable = true;
     })
   ];
 }
