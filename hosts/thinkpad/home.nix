@@ -56,7 +56,7 @@ in
     desktop = {
       browser = "google-chrome-stable";
       monitors = [ "eDP-1, preferred, 0x0, 1" ];
-      wallpapers.dir = "/home/haywan/Pictures/wallpapers";
+      wallpapers.dir = "/home/haywan/Wallpapers/gruvbox";
 
       # My dhikrs, pulled hourly from the Telegram bot on contabo.
       phrases = {
