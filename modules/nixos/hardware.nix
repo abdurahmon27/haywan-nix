@@ -1,5 +1,5 @@
 # GPU drivers, audio, bluetooth, firmware.
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, utils, ... }:
 
 let
   cfg = config.haywan.hardware;
@@ -14,6 +14,14 @@ in
     audio.enable = lib.mkEnableOption "PipeWire audio" // { default = true; };
     bluetooth.enable = lib.mkEnableOption "Bluetooth + Blueman" // { default = true; };
     fingerprint.enable = lib.mkEnableOption "the fingerprint reader for sudo and polkit prompts";
+    faceUnlock = {
+      enable = lib.mkEnableOption "Howdy face unlock (IR camera) for sudo, polkit and the lock screen";
+      camera = lib.mkOption {
+        type = lib.types.str;
+        example = "/dev/v4l/by-path/pci-0000:00:14.0-usb-0:8:1.2-video-index0";
+        description = "The IR camera. A /dev/v4l/by-path link: /dev/videoN numbers shift when v4l2loopback (OBS) loads.";
+      };
+    };
   };
 
   config = lib.mkMerge [
@@ -79,6 +87,30 @@ in
       security.pam.services.greetd.fprintAuth = false;
       # Synaptics sensors often need a firmware update (fwupdmgr) before enrolling works.
       services.fwupd.enable = true;
+    })
+
+    (lib.mkIf cfg.faceUnlock.enable {
+      # A face is enough on its own; a failed or timed-out scan falls through to finger/password.
+      services.howdy = {
+        enable = true;
+        control = "sufficient";
+        settings.video.device_path = cfg.faceUnlock.camera;
+      };
+      # Turns the IR LEDs on, so it works in the dark. One-time: `sudo linux-enable-ir-emitter configure`.
+      services.linux-enable-ir-emitter = {
+        enable = true;
+        device = lib.removePrefix "dev-" (utils.escapeSystemdPath cfg.faceUnlock.camera);
+      };
+      # Same reason as the fingerprint: a face can't unlock the keyring at login.
+      security.pam.services.greetd.howdy.enable = false;
+    })
+
+    # pam_fprintd comes first by default and holds the prompt until the finger scan times out.
+    # Look for the face first instead: it takes a couple of seconds and needs no touch.
+    (lib.mkIf (cfg.faceUnlock.enable && cfg.fingerprint.enable) {
+      security.pam.services = lib.genAttrs [ "sudo" "su" "polkit-1" ] (name: {
+        rules.auth.howdy.order = config.security.pam.services.${name}.rules.auth.fprintd.order - 1;
+      });
     })
   ];
 }

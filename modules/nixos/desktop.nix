@@ -38,11 +38,24 @@ in
       '';
     };
 
+    # Lock screen (configured in modules/home/desktop.nix). This also sets up its PAM file.
+    programs.hyprlock.enable = true;
+    # hyprlock talks to fprintd itself, so finger and password work side by side.
+    # pam_fprintd in its stack would instead block the password until the scan times out.
+    security.pam.services.hyprlock.fprintAuth = false;
+
     xdg.portal = {
       enable = true;
       xdgOpenUsePortal = true;
       extraPortals = with pkgs; [ xdg-desktop-portal-hyprland xdg-desktop-portal-gtk ];
     };
+
+    # Secret Service keyring. Electron apps keep their encryption key in it; without one
+    # T3 Code can't save remote connections. autoLogin skips the password, so it asks
+    # to be unlocked once per boot.
+    services.gnome.gnome-keyring.enable = true;
+    # gnome-keyring turns on gcr's SSH agent by default; only the keyring is wanted here.
+    services.gnome.gcr-ssh-agent.enable = false;
 
     # Home Manager writes GTK settings (dark mode, icons) through dconf.
     programs.dconf.enable = true;

@@ -16,11 +16,17 @@
     hardware = {
       gpu = "intel";
       fingerprint.enable = true; # Synaptics 06cb:00bd — enroll with `fprintd-enroll`
+      faceUnlock = {
+        enable = true; # enroll with `sudo howdy add`
+        camera = "/dev/v4l/by-path/pci-0000:00:14.0-usb-0:8:1.2-video-index0"; # Chicony "Integrated IR Camera"
+      };
     };
 
     desktop = {
       enable = true;
       keyboard.options = "altwin:super_win";
+      # Boot straight into Hyprland; it opens on the hyprlock screen (finger or password).
+      autoLogin = true;
     };
 
     # Heavy extras — only OBS is on.
