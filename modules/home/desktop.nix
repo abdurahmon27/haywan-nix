@@ -105,7 +105,7 @@ let
 
   notificationsScript = pkgs.writeShellApplication {
     name = "waybar-notifications";
-    runtimeInputs = with pkgs; [ jq swaynotificationcenter ];
+    runtimeInputs = with pkgs; [ jq swaynotificationcenter util-linux ];
     text = builtins.readFile (dotfiles + "/waybar/notifications.sh");
   };
 

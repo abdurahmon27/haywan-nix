@@ -2,11 +2,12 @@
 # whenever a notification arrives, so the bell rings once instead of glowing forever.
 
 # Our own handle on swaync-client, so it goes away with us instead of
-# lingering after Waybar restarts.
-exec 3< <(exec swaync-client --subscribe-waybar)
+# lingering after Waybar restarts. The EXIT trap misses SIGKILL/SIGPIPE, so
+# also have the kernel signal it when we die.
+exec 3< <(exec setpriv --pdeathsig TERM swaync-client --subscribe-waybar)
 feed=$!
 trap 'kill "$feed" 2>/dev/null' EXIT
-trap 'exit 0' TERM INT HUP
+trap 'exit 0' TERM INT HUP PIPE
 
 ring=3
 prev=0
