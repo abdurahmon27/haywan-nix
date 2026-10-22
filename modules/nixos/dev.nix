@@ -23,6 +23,13 @@ in
           storage-driver = "overlay2";
         };
       };
+      # Weekly: drop stopped containers and images nothing has used for a week.
+      # Volumes (database data) are never touched.
+      virtualisation.docker.autoPrune = {
+        enable = true;
+        dates = "weekly";
+        flags = [ "--all" "--filter" "until=168h" ];
+      };
       haywan.user.extraGroups = [ "docker" ];
     })
 

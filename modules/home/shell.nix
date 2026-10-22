@@ -30,7 +30,8 @@ in
 
       oh-my-zsh = {
         enable = true;
-        plugins = [ "git" "z" "sudo" ];
+        # zoxide takes over `z` when the cli bundle is on.
+        plugins = [ "git" "sudo" ] ++ lib.optional (!config.haywan.apps.cli.enable) "z";
       };
 
       plugins = [

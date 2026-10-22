@@ -91,6 +91,13 @@ in
       })
     ];
 
+    # Compressed swap in RAM, used before the disk swap partition: with Docker,
+    # Chrome and VS Code open, pages get squeezed instead of written to disk.
+    zramSwap = {
+      enable = true;
+      memoryPercent = 50;
+    };
+
     # ── Locale & network ────────────────────────────────────────────────────
     time.timeZone = cfg.timeZone;
     i18n.defaultLocale = cfg.locale;

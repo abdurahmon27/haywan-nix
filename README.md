@@ -14,9 +14,9 @@ My NixOS setup — Hyprland, Gruvbox, zsh — as a flake with Home Manager, spli
 | Desktop | Hyprland, Waybar (top + vertical right bar), Rofi launcher, Kitty, SwayNotificationCenter, swww wallpaper slideshow |
 | Login | ReGreet — a graphical Gruvbox login screen (or text-only tuigreet) |
 | Theme | Gruvbox Material, Bibata cursor, Papirus icons, JetBrains Mono Nerd Font |
-| Shell | zsh, Oh My Zsh (`git`, `z`, `sudo`), Powerlevel10k, syntax highlighting, autosuggestions |
+| Shell | zsh, Oh My Zsh (`git`, `sudo`), Powerlevel10k, syntax highlighting, autosuggestions, fzf, zoxide, eza, bat, lazygit, delta |
 | Hardware | NVIDIA / AMD / Intel, PipeWire, Bluetooth, ZSA keyboard rules |
-| Dev | Docker, PostgreSQL, Redis, MongoDB, Android SDK + emulator, iOS device tools, nix-ld for prebuilt binaries |
+| Dev | Node 24, Python + uv, Go, direnv with per-project toolchains, Docker (weekly cleanup), PostgreSQL, Redis, MongoDB, Android SDK + emulator, iOS device tools, nix-ld for prebuilt binaries, zram |
 | Extras | Steam, OBS with a virtual camera, Tailscale, RDP, VNC over Tailscale |
 
 ## Install
@@ -93,8 +93,8 @@ haywan = {
     browsers.enable = true;   # Chrome, Firefox
     chat.enable = true;       # Telegram, Discord
     editors.enable = true;    # VS Code
-    cli.enable = true;        # btop, ripgrep, fd, jq, tree, fastfetch
-    dev.enable = true;        # Node 22 + yarn + pnpm, Python, Go, watchman, Claude Code
+    cli.enable = true;        # btop, ripgrep, fd, jq, fzf, zoxide, eza, bat, lazygit, delta, lazydocker
+    dev.enable = true;        # Node 24 + yarn + pnpm, Python + uv, Go + gopls, direnv, pgcli, Claude Code
     cloud.enable = false;     # Google Cloud SDK, MongoDB Compass
     media.enable = true;      # VLC, mpv, ffmpeg
     fun.enable = false;       # cava, cmatrix, asciiquarium, nyancat
@@ -111,6 +111,22 @@ home.packages = with pkgs; [ obsidian spotify ];   # anything else
 ```
 
 Every option lives in `modules/` with a description next to it.
+
+### A different Node (or Go, or Python) per project
+
+`dev.enable` turns on [direnv](https://direnv.net) with nix-direnv. This flake ships
+toolchains as dev shells — `node24`, `node22`, `go`, `python` — and a project picks
+one with a one-line `.envrc`; it loads on `cd` and unloads when you leave:
+
+```sh
+cd ~/Developer/some-project
+echo 'use flake ~/Developer/haywan-nix#node22' > .envrc
+direnv allow
+```
+
+Nothing goes into the project's own repo but `.envrc` — add it to `.git/info/exclude`
+to keep it out of a shared repo. Need something else? Add a shell to `devShells` in
+`flake.nix`.
 
 ### A phrase in your bar
 

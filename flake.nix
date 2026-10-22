@@ -28,10 +28,21 @@
 
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
 
-      devShells = forAllSystems (system: {
-        default = nixpkgs.legacyPackages.${system}.mkShell {
-          packages = with nixpkgs.legacyPackages.${system}; [ nixpkgs-fmt nil ];
-        };
-      });
+      # `default` is for working on this repo. The rest are toolchains for other
+      # projects: put one line in the project's .envrc and direnv loads it on `cd`:
+      #   use flake ~/Developer/haywan-nix#node24
+      devShells = forAllSystems (system:
+        let pkgs = nixpkgs.legacyPackages.${system}; in
+        {
+          default = pkgs.mkShell { packages = with pkgs; [ nixpkgs-fmt nil ]; };
+          node24 = pkgs.mkShell { packages = with pkgs; [ nodejs_24 pnpm yarn ]; };
+          node22 = pkgs.mkShell { packages = with pkgs; [ nodejs_22 pnpm yarn ]; };
+          go = pkgs.mkShell { packages = with pkgs; [ go gopls golangci-lint ]; };
+          # uv picks the Python version from the project's pyproject / .python-version.
+          python = pkgs.mkShell {
+            packages = with pkgs; [ python3 uv ];
+            UV_PYTHON_DOWNLOADS = "automatic";
+          };
+        });
     };
 }
