@@ -104,6 +104,45 @@ let
     text = builtins.readFile (dotfiles + "/waybar/phrases.sh");
   };
 
+  # The running cat in the corner of the top bar uses the sprites from the GNOME
+  # RunCat extension (GPL-3.0), recoloured for the bar and rendered at 2x so they
+  # stay crisp: the run cycle in the bar's colour and in red, plus the napping cat.
+  runcatFrameCount = 5;
+  runcatSprites = pkgs.fetchFromGitHub {
+    owner = "win0err";
+    repo = "gnome-runcat";
+    rev = "e310ae7729913c5fdb4824dc7d6cc1a63dc6f292";
+    hash = "sha256-gYg5frmkIFEeIZzdonOdj5dv4r0v1bxGGZCkxF1WJ+E=";
+  };
+  runcatFrames = pkgs.runCommand "runcat-frames" { nativeBuildInputs = [ pkgs.librsvg ]; } ''
+    icons=${runcatSprites}/src/resources/icons/runcat
+    mkdir -p $out/normal $out/hot
+    render() { sed "s/#bebebe/$2/g" "$1" | rsvg-convert -h 56 -o "$3"; }
+    for i in $(seq 0 ${toString (runcatFrameCount - 1)}); do
+      render $icons/active/sprite-$i-symbolic.svg '#d4be98' $out/normal/frame-$i.png
+      render $icons/active/sprite-$i-symbolic.svg '#ea6962' $out/hot/frame-$i.png
+    done
+    render $icons/idle/sprite-0-symbolic.svg '#d4be98' $out/normal/idle.png
+  '';
+
+  runcatScript = pkgs.writeShellApplication {
+    name = "waybar-runcat";
+    text = builtins.readFile (dotfiles + "/waybar/runcat.sh");
+  };
+
+  runcatStyle = ''
+    #custom-runcat.idle { background-image: url("file://${runcatFrames}/normal/idle.png"); }
+  '' + lib.concatMapStrings (i: ''
+    #custom-runcat.f${toString i} { background-image: url("file://${runcatFrames}/normal/frame-${toString i}.png"); }
+    #custom-runcat.f${toString i}.hot { background-image: url("file://${runcatFrames}/hot/frame-${toString i}.png"); }
+  '') (lib.range 0 (runcatFrameCount - 1));
+
+  mediaButton = pkgs.writeShellApplication {
+    name = "waybar-media-button";
+    runtimeInputs = [ pkgs.playerctl ];
+    text = builtins.readFile (dotfiles + "/waybar/media-button.sh");
+  };
+
   notificationsScript = pkgs.writeShellApplication {
     name = "waybar-notifications";
     runtimeInputs = with pkgs; [ jq swaynotificationcenter util-linux ];
@@ -114,6 +153,12 @@ let
     name = "waybar-bluetooth";
     runtimeInputs = with pkgs; [ bluez gawk jq ];
     text = builtins.readFile (dotfiles + "/waybar/bluetooth.sh");
+  };
+
+  caffeine = pkgs.writeShellApplication {
+    name = "caffeine";
+    runtimeInputs = with pkgs; [ jq procps systemd ];
+    text = builtins.readFile (dotfiles + "/waybar/caffeine.sh");
   };
 
   phrasesFile =
@@ -252,6 +297,7 @@ in
 
   config = lib.mkIf cfg.enable {
     home.packages = [ pkgs.gdu ] # the storage module opens it
+      ++ lib.optional (cfg.lock.idleMinutes != null) caffeine
       ++ lib.optional (cfg.wallpapers.dir != null) wallpaperNext;
 
     # Keeps a local copy of `phrases.remote`; the bar keeps the last copy while offline.
@@ -298,6 +344,7 @@ in
         $menu = ${menu}
         $browser = ${cfg.browser}
         $wallpaperNext = ${lib.getExe wallpaperNext}
+        $caffeine = ${lib.getExe caffeine}
       '';
 
       "hypr/modules/monitors.conf".text =
@@ -359,26 +406,78 @@ in
     # ── Waybar: a thin top bar + a vertical bar on the right ────────────────
     programs.waybar = {
       enable = true;
-      style = builtins.readFile (dotfiles + "/waybar/style.css");
+      style = builtins.readFile (dotfiles + "/waybar/style.css") + runcatStyle;
       settings = {
         top = {
           layer = "top";
           position = "top";
-          modules-left = [ "custom/launcher" "hyprland/workspaces" ];
-          modules-center = [ ];
-          modules-right = lib.optional cfg.phrases.enable "custom/phrases";
+          modules-left = [ "custom/runcat" "hyprland/workspaces" ];
+          modules-center = [ "cava" "mpris" "custom/media-prev" "custom/media-toggle" "custom/media-next" ];
+          modules-right = [ "privacy" ] ++ lib.optional cfg.phrases.enable "custom/phrases";
 
-          "custom/launcher" = {
-            format = "";
+          # A cat that runs faster the busier the CPU is; click it for the app launcher.
+          "custom/runcat" = {
+            # Naps below 3% CPU, as an idle laptop does.
+            exec = "${lib.getExe runcatScript} ${toString runcatFrameCount} 3";
+            return-type = "json";
             on-click = menu;
             on-click-right = "pkill rofi";
-            tooltip = false;
+            tooltip = true;
           };
+          # Drawn as dots in style.css; the active one stretches into a pill.
           "hyprland/workspaces" = {
             format = "{id}";
             on-click = "activate";
             sort-by-number = true;
             persistent-workspaces."*" = 5;
+          };
+          # The player: sound bars, what's playing, and its buttons. Each hides on its
+          # own when nothing plays, so they're styled as segments of one pill rather
+          # than grouped (an empty group still draws its pill).
+          cava = {
+            framerate = 30;
+            bars = 10;
+            stereo = false;
+            hide_on_silence = true;
+            sleep_timer = 2;
+            noise_reduction = 77;
+            format-icons = [ "▁" "▂" "▃" "▄" "▅" "▆" "▇" "█" ];
+          };
+          mpris = {
+            format = "{player_icon}  {dynamic}";
+            format-paused = "{player_icon}  {dynamic}";
+            dynamic-len = 40;
+            dynamic-order = [ "title" "artist" ];
+            dynamic-separator = "  ·  ";
+            player-icons = { default = "󰝚"; chromium = ""; firefox = "󰈹"; spotify = "󰓇"; };
+            tooltip-format = "{player}: {title}\n{artist}";
+            on-click = "${pkgs.playerctl}/bin/playerctl play-pause";
+          };
+          "custom/media-prev" = {
+            exec = "${lib.getExe mediaButton} prev";
+            on-click = "${pkgs.playerctl}/bin/playerctl previous";
+            tooltip = false;
+          };
+          "custom/media-toggle" = {
+            exec = "${lib.getExe mediaButton} toggle";
+            on-click = "${pkgs.playerctl}/bin/playerctl play-pause";
+            tooltip = false;
+          };
+          "custom/media-next" = {
+            exec = "${lib.getExe mediaButton} next";
+            on-click = "${pkgs.playerctl}/bin/playerctl next";
+            tooltip = false;
+          };
+          # Only appears while something is using the mic or capturing the screen.
+          privacy = {
+            icon-size = 16;
+            icon-spacing = 8;
+            modules = [
+              { type = "screenshare"; tooltip = true; tooltip-icon-size = 20; }
+              { type = "audio-in"; tooltip = true; tooltip-icon-size = 20; }
+            ];
+            # The cava visualizer listens to the speakers; that isn't the mic.
+            ignore = [ { type = "audio-in"; name = "cava"; } ];
           };
           "custom/phrases" = lib.mkIf cfg.phrases.enable {
             exec = lib.escapeShellArgs ([ (lib.getExe phrasesScript) phrasesFile ]
@@ -396,9 +495,40 @@ in
           layer = "top";
           position = "right";
           width = 52;
-          modules-left = [ "clock" "custom/notifications" ];
+          # Related modules share one pill each (see style.css). Groups lie sideways
+          # in a vertical bar unless told to inherit its orientation.
+          modules-left = [ "group/time" ];
           modules-center = [ ];
-          modules-right = [ "backlight" "pulseaudio" "custom/bluetooth" "network" "cpu" "memory" "disk" "temperature" "battery" "tray" ];
+          modules-right = [ "systemd-failed-units" "group/controls" "group/system" "group/power" ];
+
+          "group/time" = {
+            orientation = "inherit";
+            modules = [ "clock" "custom/notifications" ]
+              ++ lib.optional (cfg.lock.idleMinutes != null) "custom/caffeine";
+          };
+          "group/controls" = {
+            orientation = "inherit";
+            modules = [ "backlight" "pulseaudio" "custom/bluetooth" "network" ];
+          };
+          # CPU stays visible; hover to slide out memory, disk and temperature.
+          "group/system" = {
+            orientation = "inherit";
+            drawer = { transition-duration = 300; children-class = "drawer-child"; };
+            modules = [ "cpu" "memory" "disk" "temperature" ];
+          };
+          "group/power" = {
+            orientation = "inherit";
+            modules = [ "battery" "tray" "custom/power" ];
+          };
+
+          # Only shows up when a system or user service has failed.
+          systemd-failed-units = {
+            hide-on-ok = true;
+            format = "󰀦\n<small>{nr_failed}</small>";
+            justify = "center";
+            system = true;
+            user = true;
+          };
 
           clock = {
             format = "{:%H\n•\n%M}";
@@ -426,6 +556,15 @@ in
             on-click-right = "swaync-client -d -sw";
             on-click-middle = "swaync-client -C -sw";
             escape = true;
+          };
+          # Coffee cup: click to keep the screen from locking or turning off.
+          "custom/caffeine" = lib.mkIf (cfg.lock.idleMinutes != null) {
+            exec = "${lib.getExe caffeine} status";
+            return-type = "json";
+            interval = 30;
+            signal = 10;
+            on-click = lib.getExe caffeine;
+            tooltip = true;
           };
           # Volume always shows a speaker: the Bluetooth widget right below shows
           # the device. pulseaudio rather than wireplumber for {desc} (the output) in the tooltip.
@@ -467,25 +606,26 @@ in
           };
           battery = {
             states = { full = 100; good = 95; decent = 50; warning = 30; critical = 20; };
-            format = "{icon}";
-            format-charging = "󰂄";
-            format-plugged = "󰂅";
+            format = "{icon}\n<small>{capacity}</small>";
+            format-charging = "󰂄\n<small>{capacity}</small>";
+            format-plugged = "󰂅\n<small>{capacity}</small>";
+            justify = "center";
             format-time = "{H}h {M}m";
             tooltip-format = "{capacity}% - {time}";
             format-icons = [ "󰂎" "󰁺" "󰁻" "󰁼" "󰁽" "󰁾" "󰁿" "󰂀" "󰂁" "󰂂" "󰁹" ];
           };
           cpu = {
             interval = 5;
-            format = "{icon}";
-            format-icons = [ "󰪞" "󰪟" "󰪠" "󰪡" "󰪢" "󰪣" "󰪤" "󰪥" ];
+            format = "󰍛\n<small>{usage}</small>";
+            justify = "center";
             tooltip = true;
-            tooltip-format = "CPU: {usage}%";
+            tooltip-format = "CPU: {usage}%\nHover for memory, disk and temperature";
             on-click = "${cfg.terminal} -e btop";
           };
           memory = {
             interval = 10;
-            format = "{icon}";
-            format-icons = [ "󰪞" "󰪟" "󰪠" "󰪡" "󰪢" "󰪣" "󰪤" "󰪥" ];
+            format = "󰘚\n<small>{percentage}</small>";
+            justify = "center";
             tooltip = true;
             tooltip-format = "RAM: {used:0.1f}G / {total:0.1f}G\nSwap: {swapUsed:0.1f}G / {swapTotal:0.1f}G";
           };
@@ -502,15 +642,29 @@ in
           };
           temperature = {
             critical-threshold = 80;
-            format = "{icon}";
-            format-critical = "󰸁";
+            format = "{icon}\n<small>{temperatureC}°</small>";
+            format-critical = "󰸁\n<small>{temperatureC}°</small>";
+            justify = "center";
             format-icons = [ "󱃃" "󰔏" "󱃂" ];
             tooltip = true;
             tooltip-format = "{temperatureC}°C";
           };
           tray = {
             icon-size = 16;
-            spacing = 4;
+            spacing = 8;
+          };
+          "custom/power" = {
+            format = "󰐥";
+            tooltip-format = "Lock, suspend, log out, reboot, shut down";
+            menu = "on-click";
+            menu-file = "${dotfiles + "/waybar/power-menu.xml"}";
+            menu-actions = {
+              lock = "pidof hyprlock || hyprlock";
+              suspend = "systemctl suspend";
+              logout = "hyprctl dispatch exit";
+              reboot = "systemctl reboot";
+              poweroff = "systemctl poweroff";
+            };
           };
         };
       };

@@ -2,6 +2,12 @@
  * bg   #32302f   fg   #d4be98   gray #928374
  * red  #ea6962   orn  #e78a4e   ylw  #d8a657
  * grn  #a9b665   aqu  #89b482   blu  #7daea3   pur #d3869b
+ *
+ * Rules of the bar:
+ *   - Related modules share one pill (a Waybar group); the modules inside are bare.
+ *   - Everything is fg-coloured. Colour only means a state: orange = on / active,
+ *     yellow = warning, red = critical, gray = off or muted.
+ *   - Spacing is 4 / 8 / 12 px, corners are 12 px (6 px inside a pill).
  */
 
 * {
@@ -15,86 +21,54 @@
 
 window#waybar {
   background: transparent;
+  color: #d4be98;
 }
 
 window#waybar.hidden {
   opacity: 0.2;
 }
 
-/* Workspaces */
-#workspaces {
-  margin: 5px 8px;
-  padding: 3px 5px;
-  background: rgba(50, 48, 47, 0.65);
+/* ── Pills ─────────────────────────────────────────────────────────────── */
+
+#custom-runcat,
+#workspaces,
+#cava,
+#privacy,
+#custom-phrases,
+#time,
+#controls,
+#system,
+#power,
+#systemd-failed-units {
+  background: rgba(50, 48, 47, 0.72);
   border: 1px solid rgba(212, 190, 152, 0.08);
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
-#workspaces button {
-  padding: 4px 10px;
-  margin: 0 3px;
-  color: #928374;
-  background: transparent;
-  border-radius: 6px;
-  transition: all 0.25s ease;
-}
-
-#workspaces button.active {
-  color: #d4be98;
-  background: rgba(124, 111, 100, 0.35);
-}
-
-#workspaces button:hover {
-  color: #e78a4e;
-  background: rgba(80, 73, 69, 0.30);
-}
-
-/* Clock - vertical right-edge bar, centered and prominent */
-#clock {
-  margin: 8px 6px;
-  padding: 14px 0;
-  background: rgba(50, 48, 47, 0.65);
-  border: 1px solid rgba(212, 190, 152, 0.10);
-  color: #d4be98;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 16px;
-}
-
-/* Rotating phrases (modules/home/desktop.nix → haywan.desktop.phrases) */
+/* Top bar pills sit 4 px off the edge, 4 px apart. */
+#custom-runcat,
+#workspaces,
+#cava,
+#privacy,
 #custom-phrases {
-  margin: 5px 8px;
-  padding: 0 28px;
-  background: rgba(50, 48, 47, 0.65);
-  border: 1px solid rgba(137, 180, 130, 0.16);
-  color: #89b482;
-  border-radius: 10px;
-  font-style: italic;
-  font-size: 16px;
-  font-weight: 500;
+  margin: 4px;
+  padding: 0 12px;
 }
 
-/* Claude Code usage (modules/home/claude-limits.nix → haywan.claudeLimits) */
-#custom-claude-limits {
-  margin: 5px 0 5px 8px;
-  padding: 0 14px;
-  background: rgba(50, 48, 47, 0.65);
-  border: 1px solid rgba(212, 190, 152, 0.16);
-  color: #d4be98;
-  border-radius: 10px;
-  font-size: 14px;
+/* Right bar pills: 4 px from the edge, 4 px apart, 4 px inside. */
+#time,
+#controls,
+#system,
+#power,
+#systemd-failed-units {
+  margin: 4px 6px;
+  padding: 4px 0;
 }
 
-#custom-claude-limits.warn {
-  color: #e78a4e;
-}
-
-#custom-claude-limits.critical {
-  color: #ea6962;
-  border-color: rgba(234, 105, 98, 0.4);
-}
-
-/* Module styling - clean with native blur */
+/* Modules inside a pill are bare; hover lights up just the one under the cursor. */
+#clock,
+#custom-notifications,
+#custom-caffeine,
 #backlight,
 #pulseaudio,
 #custom-bluetooth,
@@ -104,117 +78,285 @@ window#waybar.hidden {
 #disk,
 #temperature,
 #battery,
+#custom-power,
 #tray {
-  margin: 3px 5px;
-  padding: 10px 0;
-  background: rgba(50, 48, 47, 0.65);
-  border: 1px solid rgba(212, 190, 152, 0.07);
+  margin: 0 4px;
+  padding: 8px 0;
+  border-radius: 6px;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+#custom-notifications:hover,
+#custom-caffeine:hover,
+#backlight:hover,
+#pulseaudio:hover,
+#custom-bluetooth:hover,
+#network:hover,
+#cpu:hover,
+#memory:hover,
+#disk:hover,
+#temperature:hover,
+#battery:hover,
+#custom-power:hover {
+  background: rgba(212, 190, 152, 0.10);
+}
+
+/* ── Top bar ───────────────────────────────────────────────────────────── */
+
+/* The cat: each frame is a background image picked by class (see runcatStyle in
+ * desktop.nix). The frames are 2x, so they're scaled down to the pill. */
+#custom-runcat {
+  min-width: 36px;
+  padding: 0 6px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: auto 28px;
+  border-color: rgba(231, 138, 78, 0.22);
+}
+
+#custom-runcat:hover {
+  border-color: rgba(231, 138, 78, 0.55);
+}
+
+/* Workspaces are dots; the one you're on stretches into an orange pill.
+ * The button is the full height of the pill so it's easy to hit, and the dot is
+ * drawn on its (textless) label inside. */
+#workspaces {
+  padding: 0 4px;
+}
+
+#workspaces button {
+  margin: 0;
+  padding: 0 5px;
+  background: transparent;
+  border-radius: 6px;
+}
+
+#workspaces button label {
+  min-width: 8px;
+  min-height: 8px;
+  margin: 8px 0; /* (pill height − dot) / 2: keeps the dot round, not a full-height bar */
+  font-size: 0;
+  border-radius: 6px;
+  background: rgba(212, 190, 152, 0.55);
+  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+#workspaces button.empty label {
+  background: rgba(146, 131, 116, 0.30);
+}
+
+#workspaces button.active label {
+  min-width: 26px;
+  background: #e78a4e;
+}
+
+#workspaces button.urgent label {
+  background: #ea6962;
+}
+
+#workspaces button:hover label {
+  background: rgba(231, 138, 78, 0.70);
+}
+
+#workspaces button.active:hover label {
+  background: #e78a4e;
+}
+
+/* The player: the sound bars get their own pill, then the title and the buttons
+ * are segments of a second one. They're separate modules (each hides on its own
+ * when nothing plays), so the segments share a background and only the outer
+ * corners are rounded. */
+#cava {
+  margin: 4px;
+  padding: 0 12px;
+  color: #e78a4e;
+  font-size: 13px;
+}
+
+#mpris,
+#custom-media-prev,
+#custom-media-toggle,
+#custom-media-next {
+  margin: 4px 0;
+  background: rgba(50, 48, 47, 0.72);
+  border-top: 1px solid rgba(212, 190, 152, 0.08);
+  border-bottom: 1px solid rgba(212, 190, 152, 0.08);
+}
+
+#mpris {
+  margin-left: 4px;
+  padding: 0 10px 0 14px;
+  border-left: 1px solid rgba(212, 190, 152, 0.08);
+  border-radius: 12px 0 0 12px;
   color: #d4be98;
-  border-radius: 10px;
-  transition: all 0.25s ease;
+}
+
+#mpris.paused {
+  color: #928374;
+  font-style: italic;
+}
+
+#custom-media-prev,
+#custom-media-toggle,
+#custom-media-next {
+  padding: 0 8px;
+  color: #d4be98;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+#custom-media-toggle {
+  color: #e78a4e;
+}
+
+#custom-media-next {
+  margin-right: 4px;
+  padding-right: 12px;
+  border-right: 1px solid rgba(212, 190, 152, 0.08);
+  border-radius: 0 12px 12px 0;
+}
+
+#custom-media-prev:hover,
+#custom-media-toggle:hover,
+#custom-media-next:hover {
+  color: #e78a4e;
+}
+
+/* Only shows while the mic, camera or screen is in use — so it's always red. */
+#privacy {
+  padding: 0 8px;
+  background: rgba(234, 105, 98, 0.18);
+  border-color: rgba(234, 105, 98, 0.55);
+}
+
+#privacy-item {
+  padding: 0 4px;
+  color: #ea6962;
+}
+
+/* Rotating phrases (modules/home/desktop.nix → haywan.desktop.phrases) */
+#custom-phrases {
+  padding: 0 24px;
+  color: #89b482;
+  border-color: rgba(137, 180, 130, 0.16);
+  font-style: italic;
   font-size: 16px;
 }
 
-#custom-launcher {
+/* Claude Code usage (modules/home/claude-limits.nix → haywan.claudeLimits) */
+#custom-claude-limits {
+  margin: 4px;
   padding: 0 12px;
-  margin: 5px 5px;
-  color: #e78a4e;
-  font-size: 20px;
-  background: rgba(50, 48, 47, 0.55);
-  border-radius: 10px;
-  border: 1px solid rgba(231, 138, 78, 0.22);
+  background: rgba(50, 48, 47, 0.72);
+  border: 1px solid rgba(212, 190, 152, 0.12);
+  color: #d4be98;
+  border-radius: 12px;
+  font-size: 14px;
+  transition: all 0.25s ease;
 }
 
-/* Individual module colors */
-#backlight {
-  color: #d8a657;
-}
-
-#backlight:hover {
+#custom-claude-limits:hover {
   background: rgba(80, 73, 69, 0.55);
+  border-color: rgba(212, 190, 152, 0.30);
+}
+
+/* Each account colours its own chip, so the pill only has to carry how urgent
+ * the worst of them is: a warmer edge, then a filled edge, then a slow pulse
+ * once prompts are being held outright. */
+#custom-claude-limits.warn {
   border-color: rgba(216, 166, 87, 0.30);
 }
 
-#pulseaudio {
-  color: #a9b665;
+#custom-claude-limits.triage {
+  background: rgba(231, 138, 78, 0.10);
+  border-color: rgba(231, 138, 78, 0.42);
 }
 
-#pulseaudio.muted {
+#custom-claude-limits.block {
+  background: rgba(234, 105, 98, 0.16);
+  border-color: rgba(234, 105, 98, 0.55);
+  animation: claude-pulse 1.8s ease-in-out infinite alternate;
+}
+
+/* Numbers we can't vouch for any more: stale cache, or an account that errored. */
+#custom-claude-limits.stale {
+  border-style: dashed;
+}
+
+/* Nothing has reported yet, which is not the same as a healthy zero. */
+#custom-claude-limits.none {
   color: #928374;
-  background: rgba(80, 73, 69, 0.45);
+  border-color: rgba(212, 190, 152, 0.07);
 }
 
-#pulseaudio:hover {
-  background: rgba(80, 73, 69, 0.55);
-  border-color: rgba(169, 182, 101, 0.30);
+/* ── Right bar: time ───────────────────────────────────────────────────── */
+
+#clock {
+  padding: 10px 0;
+  font-weight: 700;
 }
 
-#custom-bluetooth {
-  color: #7daea3;
+/* Rings for a few seconds when something arrives. */
+#custom-notifications {
+  font-size: 18px;
 }
 
+#custom-notifications.notification {
+  color: #d8a657;
+}
+
+#custom-notifications.dnd-none,
+#custom-notifications.dnd-notification {
+  color: #665c54;
+}
+
+#custom-notifications.new {
+  animation: bell-ring 0.3s ease-in-out 8 alternate;
+}
+
+#custom-caffeine {
+  color: #665c54;
+  font-size: 18px;
+}
+
+#custom-caffeine.on {
+  color: #e78a4e;
+  background: rgba(231, 138, 78, 0.16);
+}
+
+/* ── Right bar: controls ───────────────────────────────────────────────── */
+
+#pulseaudio.muted,
 #custom-bluetooth.off {
   color: #928374;
-}
-
-#custom-bluetooth.connected {
-  color: #89b482;
-}
-
-#custom-bluetooth:hover {
-  background: rgba(80, 73, 69, 0.55);
-  border-color: rgba(125, 174, 163, 0.30);
-}
-
-#network {
-  color: #7daea3;
 }
 
 #network.disconnected {
   color: #ea6962;
 }
 
-#network:hover {
-  background: rgba(80, 73, 69, 0.55);
-  border-color: rgba(125, 174, 163, 0.30);
-}
+/* ── Right bar: system (hover to open) ─────────────────────────────────── */
 
-#cpu {
-  color: #89b482;
-}
-
-#cpu:hover {
-  background: rgba(80, 73, 69, 0.55);
-  border-color: rgba(137, 180, 130, 0.30);
-}
-
-#memory {
-  color: #d3869b;
-}
-
-#memory:hover {
-  background: rgba(80, 73, 69, 0.55);
-  border-color: rgba(211, 134, 155, 0.30);
-}
-
-#temperature {
-  color: #d8a657;
-}
-
-#temperature.critical {
+#temperature.critical,
+#disk.critical {
   color: #ea6962;
   background: rgba(234, 105, 98, 0.22);
   animation: blink 1.2s linear infinite alternate;
 }
 
-#temperature:hover {
-  background: rgba(80, 73, 69, 0.55);
-  border-color: rgba(216, 166, 87, 0.30);
+#disk.warning {
+  color: #d8a657;
 }
 
-#battery {
-  color: #a9b665;
+#systemd-failed-units {
+  color: #ea6962;
+  border-color: rgba(234, 105, 98, 0.55);
+  font-size: 16px;
 }
+
+/* ── Right bar: power ──────────────────────────────────────────────────── */
 
 #battery.warning {
   color: #d8a657;
@@ -228,67 +370,11 @@ window#waybar.hidden {
 
 #battery.charging,
 #battery.plugged {
-  color: #89b482;
+  color: #a9b665;
 }
 
-#battery:hover {
-  background: rgba(80, 73, 69, 0.55);
-  border-color: rgba(169, 182, 101, 0.30);
-}
-
-#disk {
-  color: #d4be98;
-}
-
-#disk.warning {
-  color: #e78a4e;
-}
-
-#disk.critical {
-  color: #ea6962;
-  background: rgba(234, 105, 98, 0.22);
-  animation: blink 1.2s linear infinite alternate;
-}
-
-#disk:hover {
-  background: rgba(80, 73, 69, 0.55);
-  border-color: rgba(212, 190, 152, 0.30);
-}
-
-/* Notification bell, right under the clock */
-#custom-notifications {
-  margin: 3px 5px;
-  padding: 10px 0;
-  background: rgba(50, 48, 47, 0.65);
-  border: 1px solid rgba(212, 190, 152, 0.07);
-  border-radius: 10px;
-  color: #928374;
-  font-size: 18px;
-  transition: all 0.25s ease;
-}
-
-#custom-notifications.notification {
-  color: #d8a657;
-}
-
-#custom-notifications.dnd-none,
-#custom-notifications.dnd-notification {
-  color: #665c54;
-}
-
-/* A few quick pulses when something new arrives */
-#custom-notifications.new {
-  animation: bell-ring 0.3s ease-in-out 8 alternate;
-}
-
-#custom-notifications:hover {
-  background: rgba(80, 73, 69, 0.55);
-  border-color: rgba(216, 166, 87, 0.30);
-}
-
-/* System Tray */
 #tray {
-  padding: 8px 5px;
+  padding: 8px 0;
 }
 
 #tray > .passive {
@@ -298,6 +384,24 @@ window#waybar.hidden {
 #tray > .needs-attention {
   -gtk-icon-effect: highlight;
   background: rgba(234, 105, 98, 0.35);
+}
+
+#custom-power {
+  color: #ea6962;
+  font-size: 17px;
+}
+
+#custom-power:hover {
+  background: rgba(234, 105, 98, 0.16);
+}
+
+/* ── Animations, tooltips, menus ───────────────────────────────────────── */
+
+@keyframes claude-pulse {
+  to {
+    background: rgba(234, 105, 98, 0.34);
+    border-color: rgba(234, 105, 98, 0.85);
+  }
 }
 
 @keyframes bell-ring {
@@ -312,4 +416,37 @@ window#waybar.hidden {
     background: rgba(234, 105, 98, 0.45);
     color: #32302f;
   }
+}
+
+/* GTK's defaults are pale boxes that fight the bar; match the pills. */
+tooltip {
+  background: rgba(40, 38, 37, 0.98);
+  border: 1px solid rgba(212, 190, 152, 0.16);
+  border-radius: 12px;
+}
+
+tooltip label {
+  color: #d4be98;
+  padding: 2px 4px;
+}
+
+menu {
+  background: rgba(40, 38, 37, 0.98);
+  border: 1px solid rgba(212, 190, 152, 0.16);
+  border-radius: 12px;
+  padding: 6px;
+}
+
+menuitem {
+  padding: 6px 12px;
+  border-radius: 6px;
+  color: #d4be98;
+}
+
+menuitem:hover {
+  background: rgba(212, 190, 152, 0.10);
+}
+
+menuitem label {
+  color: #d4be98;
 }
