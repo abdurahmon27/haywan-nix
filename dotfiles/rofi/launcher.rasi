@@ -9,6 +9,14 @@ configuration {
     drun-display-format:   "{name}";
 }
 
+/* Start apps by running their command, not over D-Bus: for some (Files/Nautilus)
+ * rofi's D-Bus start opened two windows when the app wasn't already running. */
+configuration {
+    drun {
+        DBusActivatable: false;
+    }
+}
+
 * {
     font:            "JetBrainsMono Nerd Font 13";
     background:      #282828FF;
