@@ -6,7 +6,8 @@ let
   cfg = config.haywan.desktop;
   dotfiles = ../../dotfiles;
 
-  menu = "rofi -show drun -theme ~/.config/rofi/launcher.rasi";
+  # Toggles: run it again (click the cat, Super+Space) to close an open launcher.
+  menu = "pkill -x rofi || rofi -show drun -theme ~/.config/rofi/launcher.rasi";
 
   # One shared FIFO: the loop waits on it instead of sleeping, so `wallpaper-next`
   # can cut a nap short and advance immediately.

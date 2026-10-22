@@ -21,18 +21,18 @@ configuration {
 
 window {
     transparency:      "real";
-    location:          center;
-    anchor:            center;
-    width:             600px;
-    height:            400px;
-    border-radius:     12px;
-    background-color:  @background;
+    fullscreen:        true;
+    /* The dim layer is rofi's own window, so clicking it is "outside" the box. */
+    background-color:  #1d202199;
+    /* Leaves a 600×400 box in the middle, whatever the screen size. */
+    padding:           calc( 50% - 200px ) calc( 50% - 300px );
 }
 
 mainbox {
     spacing:           10px;
     padding:           20px;
-    background-color:  transparent;
+    border-radius:     12px;
+    background-color:  @background;
     children:          [ "inputbar", "listview" ];
 }
 
