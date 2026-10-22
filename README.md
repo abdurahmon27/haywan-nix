@@ -148,6 +148,8 @@ Shows how much of your Claude plan you've used in the top bar, and adds a Claude
 
 Start a prompt with `!urgent` to always send it.
 
+Each account also gets a status line at the bottom of Claude Code with the model, its 5-hour and weekly usage, and when each one resets. It's left out where you already set your own `statusLine`; turn it off with `statusLine = false;`.
+
 ```nix
 haywan.claudeLimits = {
   enable = true;

@@ -1,5 +1,5 @@
-# Claude Code usage limits: a Waybar module plus a prompt hook that holds
-# non-urgent prompts when an account is nearly out.
+# Claude Code usage limits: a Waybar module, a status line inside Claude Code,
+# and a prompt hook that holds non-urgent prompts when an account is nearly out.
 #   haywan.claudeLimits.enable = true;
 # Scripts live in ../../dotfiles/claude-limits.
 { config, lib, pkgs, ... }:
@@ -28,20 +28,25 @@ let
   # `claude` itself comes from your PATH, so the hook uses whatever version you run.
   guard = script "claude-limits-guard" "guard.sh" (with pkgs; [ coreutils gnugrep jq fetch ]);
   bar = script "claude-limits-waybar" "waybar.sh" (with pkgs; [ coreutils jq ]);
+  statusLine = script "claude-limits-statusline" "statusline.sh" (with pkgs; [ coreutils jq ]);
 
   # A stable path, so settings.json doesn't change on every rebuild.
   hookCommand = "${config.home.profileDirectory}/bin/claude-limits-guard";
+  statusLineCommand = "${config.home.profileDirectory}/bin/claude-limits-statusline";
 
   # Claude Code writes to its own settings.json, so it can't be a read-only Nix
-  # file. Instead the hook entry is merged in on every switch, and taken back out
-  # when the module is turned off. Other hooks and settings are left alone.
-  syncHooks = enable: pkgs.writeShellScript "claude-limits-sync-hooks" ''
+  # file. Instead our entries are merged in on every switch, and taken back out
+  # when the module is turned off. Other hooks and settings are left alone, and a
+  # status line you set yourself is never replaced.
+  syncHooks = enable: showStatusLine: pkgs.writeShellScript "claude-limits-sync-hooks" ''
     for dir in ${lib.escapeShellArgs dirs}; do
       [ -d "$dir" ] || continue
       settings="$dir/settings.json"
       ${if enable then ''[ -f "$settings" ] || echo '{}' >"$settings"''
-        else ''grep -qs claude-limits-guard "$settings" || continue''}
-      ${pkgs.jq}/bin/jq --arg cmd ${lib.escapeShellArg hookCommand} --argjson on ${lib.boolToString enable} '
+        else ''grep -qs claude-limits- "$settings" || continue''}
+      ${pkgs.jq}/bin/jq \
+        --arg cmd ${lib.escapeShellArg hookCommand} --argjson on ${lib.boolToString enable} \
+        --arg line ${lib.escapeShellArg statusLineCommand} --argjson lineOn ${lib.boolToString (enable && showStatusLine)} '
         def ours: (.command // "") | contains("claude-limits-guard");
         .hooks.UserPromptSubmit = [
           .hooks.UserPromptSubmit[]? | .hooks |= map(select(ours | not)) | select(.hooks != [])
@@ -49,6 +54,10 @@ let
         | if $on then .hooks.UserPromptSubmit += [{ hooks: [{ type: "command", command: $cmd, timeout: 45 }] }] else . end
         | if .hooks.UserPromptSubmit == [] then del(.hooks.UserPromptSubmit) else . end
         | if .hooks == {} then del(.hooks) else . end
+        | ((.statusLine.command // "") | contains("claude-limits-statusline")) as $mine
+        | if $lineOn and (.statusLine == null or $mine) then .statusLine = { type: "command", command: $line, padding: 0 }
+          elif ($lineOn | not) and $mine then del(.statusLine)
+          else . end
       ' "$settings" >"$settings.tmp" || {
         echo "claude-limits: $settings isn't valid JSON, left it alone" >&2
         rm -f "$settings.tmp"
@@ -122,6 +131,15 @@ in
       description = "The model that decides whether a prompt is urgent. Runs on the same account.";
     };
 
+    statusLine = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        Show the model and this account's usage at the bottom of Claude Code.
+        Only set where the account has no status line of its own.
+      '';
+    };
+
     waybar = lib.mkOption {
       type = lib.types.bool;
       default = config.haywan.desktop.enable;
@@ -134,12 +152,12 @@ in
     # Runs when off too, so turning the module off removes the hook again.
     {
       home.activation.claudeLimitsHooks = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        run ${syncHooks cfg.enable}
+        run ${syncHooks cfg.enable cfg.statusLine}
       '';
     }
 
     (lib.mkIf cfg.enable {
-      home.packages = [ fetch guard ];
+      home.packages = [ fetch guard ] ++ lib.optional cfg.statusLine statusLine;
 
       systemd.user.services.claude-limits-fetch = {
         Unit.Description = "Fetch Claude Code usage limits";
