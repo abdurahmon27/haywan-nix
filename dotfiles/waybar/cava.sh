@@ -6,9 +6,11 @@
 #
 #   waybar-cava OUT_CONF MIC_CONF   run (Waybar's exec)
 #   waybar-cava toggle              switch it off — cava stops, closing the mic — or on
+#   waybar-cava mic up|down         mic sensitivity ±20 (scroll), kept across reboots
 
 state="${XDG_RUNTIME_DIR:-/tmp}/waybar-cava"
-mkdir -p "$state"
+saved="${XDG_STATE_HOME:-$HOME/.local/state}/waybar-cava"
+mkdir -p "$state" "$saved"
 
 stop_cava() {
   if [ -s "$state/pids" ]; then
@@ -17,6 +19,18 @@ stop_cava() {
   fi
   rm -f "$state/pids"
 }
+
+if [ "$1" = mic ]; then
+  sens=$(cat "$saved/mic-sensitivity" 2>/dev/null || echo 130)
+  case "$2" in
+    up) sens=$((sens + 20)) ;;
+    down) sens=$((sens - 20)) ;;
+  esac
+  sens=$((sens < 20 ? 20 : sens > 600 ? 600 : sens))
+  echo "$sens" >"$saved/mic-sensitivity"
+  stop_cava # the running loop restarts cava with it
+  exit 0
+fi
 
 if [ "$1" = toggle ]; then
   if [ -e "$state/off" ]; then rm -f "$state/off"; else touch "$state/off"; fi
@@ -41,8 +55,14 @@ while true; do
   fi
 
   # The mic's conf names its source: fill in today's default mic.
-  mic=$(wpctl inspect @DEFAULT_AUDIO_SOURCE@ 2>/dev/null | sed -n 's/.*node\.name = "\(.*\)"/\1/p' | head -1)
+  # (|| true: at login PipeWire may not be up yet; cava then retries below.)
+  mic=$(wpctl inspect @DEFAULT_AUDIO_SOURCE@ 2>/dev/null | sed -n 's/.*node\.name = "\(.*\)"/\1/p' | head -1) || true
   sed "s|@SOURCE@|${mic:-auto}|" "$mic_conf" >"$state/mic.conf"
+  sens=$(cat "$saved/mic-sensitivity" 2>/dev/null || true)
+  if [[ "$sens" =~ ^[0-9]+$ ]]; then
+    sed -i "s|^sensitivity = .*|sensitivity = $sens|" "$state/mic.conf"
+  fi
+  sens=$(sed -n 's/^sensitivity = //p' "$state/mic.conf")
 
   # pdeathsig: the kernel stops cava when this script dies, however it dies.
   exec {out_fd}< <(exec setpriv --pdeathsig TERM cava -p "$out_conf" 2>/dev/null)
@@ -52,6 +72,11 @@ while true; do
 
   mic_frame=""
   last=""
+  # The room's background noise on the mic, per bar, in hundredths of a bar step:
+  # a mic bar counts only above its floor + 1.5. Each floor follows that bar's
+  # level, slowly up (~4 s, so a steady hum like the fan settles in) and faster
+  # down (~1 s). Speech comes in bursts with pauses, so it stays above.
+  floors=(0 0 0 0 0 0 0 0 0 0 0 0)
   # Paced by the speakers' cava (30 frames a second, sound or not).
   while IFS= read -r -u "$out_fd" frame; do
     [[ "$frame" =~ ^[0-9\;]+$ ]] || continue # cava also prints a title escape
@@ -65,7 +90,13 @@ while true; do
     for ((i = 0; i < ${#out_frame}; i++)); do
       a=${out_frame:i:1} b=${mic_frame:i:1}
       b=${b:-0}
-      if ((b <= 1)); then b=0; fi # the mic always hears a little room noise
+      f=${floors[i]:-0}
+      if ((b * 100 > f)); then
+        floors[i]=$((f + (b * 100 - f) / 120)) # up: ~4 s at 30 frames a second
+      else
+        floors[i]=$((f - (f - b * 100) / 30)) # down: ~1 s
+      fi
+      if ((b * 100 <= f + 150)); then b=0; fi # room noise, not sound
       out_sum=$((out_sum + a)) mic_sum=$((mic_sum + b))
       if ((b > a)); then bars+="$b"; else bars+="$a"; fi # append the digit
     done
@@ -81,7 +112,7 @@ while true; do
     bars=${bars//4/▅} bars=${bars//5/▆} bars=${bars//6/▇} bars=${bars//7/█}
     # In silence the frame doesn't change: skip redrawing the same bars 30 times a second.
     if [ "$bars$class" != "$last" ]; then
-      show "$bars" "$class" "Speakers and mic\\nClick to turn the bars off"
+      show "$bars" "$class" "Speakers and mic · mic sensitivity $sens\\nClick: turn off · Scroll: mic sensitivity"
       last="$bars$class"
     fi
   done

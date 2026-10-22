@@ -474,6 +474,9 @@ in
             exec = "${lib.getExe cavaScript} ${dotfiles + "/waybar/cava.conf"} ${dotfiles + "/waybar/cava-mic.conf"}";
             return-type = "json";
             on-click = "${lib.getExe cavaScript} toggle";
+            # Scroll to make the mic bars more or less sensitive (for your room).
+            on-scroll-up = "${lib.getExe cavaScript} mic up";
+            on-scroll-down = "${lib.getExe cavaScript} mic down";
           };
           mpris = {
             format = "{player_icon}  {dynamic}";
