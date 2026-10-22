@@ -15,7 +15,7 @@ offset=$(cat "$offset_file" 2>/dev/null || echo 0)
 
 if [ "${1:-}" = "--next" ]; then
   echo $((offset + 1)) >"$offset_file"
-  pkill -RTMIN+8 waybar || true
+  pkill -RTMIN+8 -f '(^|/)waybar( |$)' || true # Waybar itself, not the waybar-* scripts
   exit 0
 fi
 

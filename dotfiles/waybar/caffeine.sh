@@ -30,5 +30,6 @@ case "${1:-toggle}" in
   *) echo "usage: caffeine [on|off|toggle|status]" >&2; exit 2 ;;
 esac
 
-# Refresh the bar icon right away.
-pkill -RTMIN+10 waybar || true
+# Refresh the bar icon right away. Match Waybar itself only: a bare `pkill waybar`
+# also hits our waybar-* scripts, and an unhandled RT signal kills them.
+pkill -RTMIN+10 -f '(^|/)waybar( |$)' || true

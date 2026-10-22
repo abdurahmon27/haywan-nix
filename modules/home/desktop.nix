@@ -310,7 +310,8 @@ in
             tmp="${phrasesFile}.part"
             ${pkgs.openssh}/bin/scp -q -o BatchMode=yes -o ConnectTimeout=15 \
               ${lib.escapeShellArg cfg.phrases.remote} "$tmp" && mv "$tmp" ${lib.escapeShellArg phrasesFile}
-            ${pkgs.procps}/bin/pkill -RTMIN+8 waybar || true
+            # Waybar itself only: `pkill waybar` would also kill the waybar-* scripts.
+            ${pkgs.procps}/bin/pkill -RTMIN+8 -f '(^|/)waybar( |$)' || true
           '';
         };
       };

@@ -164,7 +164,8 @@ in
         Service = {
           Type = "oneshot";
           ExecStart = lib.getExe fetch;
-          ExecStartPost = "-${pkgs.procps}/bin/pkill -RTMIN+9 waybar";
+          # Waybar itself only: `pkill waybar` would also kill its waybar-* scripts.
+          ExecStartPost = "-${pkgs.writeShellScript "refresh-claude-limits-bar" "${pkgs.procps}/bin/pkill -RTMIN+9 -f '(^|/)waybar( |$)'"}";
         };
       };
       systemd.user.timers.claude-limits-fetch = {
