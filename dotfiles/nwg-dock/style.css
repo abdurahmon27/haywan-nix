@@ -1,0 +1,79 @@
+/* Dock (nwg-dock-hyprland) — styled like the Waybar pills: same background,
+ * hairline border and corners; colour only marks state (orange = the app you're in).
+ * It hides at the bottom edge and slides up when the pointer touches it. */
+
+window {
+  background: rgba(50, 48, 47, 0.85);
+  border: 1px solid rgba(212, 190, 152, 0.10);
+  border-radius: 16px;
+}
+
+#box {
+  padding: 4px 6px 2px;
+}
+
+button,
+image {
+  background: none;
+  border-style: none;
+  box-shadow: none;
+}
+
+button {
+  margin: 0 2px;
+  padding: 6px 6px 2px;
+  border-radius: 12px;
+  border-bottom: 2px solid transparent;
+  color: #d4be98;
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  background-color: rgba(212, 190, 152, 0.10);
+}
+
+button:hover image {
+  -gtk-icon-transform: scale(1.1);
+}
+
+/* The app you're in. */
+#active {
+  background-color: rgba(231, 138, 78, 0.12);
+  border-bottom-color: #e78a4e;
+}
+
+button:focus {
+  box-shadow: none;
+}
+
+/* The window picker (an app with several windows) and right-click menus. */
+menu {
+  background: rgba(40, 38, 37, 0.98);
+  border: 1px solid rgba(212, 190, 152, 0.16);
+  border-radius: 12px;
+  padding: 6px;
+}
+
+menuitem {
+  padding: 6px 12px;
+  border-radius: 6px;
+  color: #d4be98;
+}
+
+menuitem:hover {
+  background: rgba(212, 190, 152, 0.10);
+}
+
+menuitem label {
+  color: #d4be98;
+}
+
+tooltip {
+  background: rgba(40, 38, 37, 0.98);
+  border: 1px solid rgba(212, 190, 152, 0.16);
+  border-radius: 12px;
+}
+
+tooltip label {
+  color: #d4be98;
+}

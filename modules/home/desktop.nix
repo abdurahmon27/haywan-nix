@@ -143,6 +143,12 @@ let
     text = builtins.readFile (dotfiles + "/waybar/media-button.sh");
   };
 
+  dockScript = pkgs.writeShellApplication {
+    name = "dock";
+    runtimeInputs = with pkgs; [ coreutils nwg-dock-hyprland hyprland jq socat ];
+    text = builtins.readFile (dotfiles + "/nwg-dock/dock.sh");
+  };
+
   notificationsScript = pkgs.writeShellApplication {
     name = "waybar-notifications";
     runtimeInputs = with pkgs; [ jq swaynotificationcenter util-linux ];
@@ -217,6 +223,10 @@ let
     ++ [ "${pkgs.hyprpolkitagent}/libexec/hyprpolkitagent" ]
     ++ lib.optional (cfg.wallpapers.dir != null)
       "${lib.getExe wallpaperLoop} ${cfg.wallpapers.dir} ${toString cfg.wallpapers.interval}"
+    # Hidden at the bottom edge; touch the edge with the pointer and it slides up.
+    # Only runs while an app is open (see dock.sh). -hd 0: reaching the edge is enough
+    # (by default the pointer has to cross the last ~20 px within 20 ms, i.e. a flick).
+    ++ lib.optional cfg.dock.enable "${lib.getExe dockScript} -d -hd 0 -i 40 -mb 8 -nolauncher"
     ++ lib.optional (osConfig.haywan.remote.vnc.enable or false)
       # Listens on all interfaces, but the firewall only opens 5900 on tailscale0.
       "wayvnc 0.0.0.0 5900"
@@ -244,6 +254,10 @@ in
       default = [ ];
       description = "Extra commands to run when Hyprland starts.";
     };
+
+    dock.enable = lib.mkEnableOption ''
+      a macOS-style dock at the bottom: hidden until the pointer touches the edge,
+      shows pinned and open apps, click one to jump to its window (right-click to pin)'';
 
     lock.idleMinutes = lib.mkOption {
       type = lib.types.nullOr lib.types.int;
@@ -402,6 +416,14 @@ in
       "kitty/kitty.conf".source = dotfiles + "/kitty/kitty.conf";
       "kitty/theme.conf".source = dotfiles + "/kitty/theme.conf";
       "rofi/launcher.rasi".source = dotfiles + "/rofi/launcher.rasi";
+      "nwg-dock-hyprland/style.css" = lib.mkIf cfg.dock.enable {
+        source = dotfiles + "/nwg-dock/style.css";
+      };
+    };
+
+    # The dock's running-app dots, in the bar's colours (it looks in XDG_DATA_HOME first).
+    xdg.dataFile."nwg-dock-hyprland/images" = lib.mkIf cfg.dock.enable {
+      source = dotfiles + "/nwg-dock/images";
     };
 
     # ── Waybar: a thin top bar + a vertical bar on the right ────────────────
