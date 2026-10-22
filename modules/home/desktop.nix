@@ -456,7 +456,10 @@ in
             return-type = "json";
             on-click = menu;
             on-click-right = "pkill rofi";
-            tooltip = true;
+            # Off on purpose: this updates ~30 times a second, and every tooltip change
+            # cancels any tooltip about to open anywhere on the bar (GTK does that per
+            # window), so with it on no module's tooltip could ever show.
+            tooltip = false;
           };
           # Drawn as dots in style.css; the active one stretches into a pill.
           "hyprland/workspaces" = {
@@ -474,6 +477,7 @@ in
             exec = "${lib.getExe cavaScript} ${dotfiles + "/waybar/cava.conf"} ${dotfiles + "/waybar/cava-mic.conf"}";
             return-type = "json";
             on-click = "${lib.getExe cavaScript} toggle";
+            tooltip = false; # updates up to 30 times a second; see custom/runcat
             # Scroll to make the mic bars more or less sensitive (for your room).
             on-scroll-up = "${lib.getExe cavaScript} mic up";
             on-scroll-down = "${lib.getExe cavaScript} mic down";
