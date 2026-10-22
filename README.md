@@ -253,6 +253,7 @@ Garbage collection runs weekly and keeps 14 days of generations.
 
 - Rofi launcher layout adapted from [adi1090x/rofi](https://github.com/adi1090x/rofi) (GPL-3.0).
 - Colors from [Gruvbox Material](https://github.com/sainnhe/gruvbox-material).
+- The running cat in the bar uses the sprites from [win0err/gnome-runcat](https://github.com/win0err/gnome-runcat) (GPL-3.0).
 
 ## License
 

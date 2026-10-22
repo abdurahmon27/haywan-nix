@@ -137,6 +137,12 @@ let
     #custom-runcat.f${toString i}.hot { background-image: url("file://${runcatFrames}/hot/frame-${toString i}.png"); }
   '') (lib.range 0 (runcatFrameCount - 1));
 
+  cavaScript = pkgs.writeShellApplication {
+    name = "waybar-cava";
+    runtimeInputs = with pkgs; [ cava coreutils gnused util-linux wireplumber ];
+    text = builtins.readFile (dotfiles + "/waybar/cava.sh");
+  };
+
   mediaButton = pkgs.writeShellApplication {
     name = "waybar-media-button";
     runtimeInputs = [ pkgs.playerctl ];
@@ -435,8 +441,13 @@ in
           layer = "top";
           position = "top";
           modules-left = [ "custom/runcat" "hyprland/workspaces" ];
-          modules-center = [ "cava" "mpris" "custom/media-prev" "custom/media-toggle" "custom/media-next" ];
-          modules-right = [ "privacy" ] ++ lib.optional cfg.phrases.enable "custom/phrases";
+          modules-center = [ "mpris" "custom/media-prev" "custom/media-toggle" "custom/media-next" ];
+          # The sound bars come first, left of the Claude usage pill: claude-limits.nix
+          # adds that with mkBefore (500), so these need an earlier order still.
+          modules-right = lib.mkMerge [
+            (lib.mkOrder 400 [ "custom/cava" ])
+            ([ "privacy" ] ++ lib.optional cfg.phrases.enable "custom/phrases")
+          ];
 
           # A cat that runs faster the busier the CPU is; click it for the app launcher.
           "custom/runcat" = {
@@ -457,14 +468,12 @@ in
           # The player: sound bars, what's playing, and its buttons. Each hides on its
           # own when nothing plays, so they're styled as segments of one pill rather
           # than grouped (an empty group still draws its pill).
-          cava = {
-            framerate = 30;
-            bars = 10;
-            stereo = false;
-            hide_on_silence = true;
-            sleep_timer = 2;
-            noise_reduction = 77;
-            format-icons = [ "▁" "▂" "▃" "▄" "▅" "▆" "▇" "█" ];
+          # Sound bars for the speakers and the mic together; always there, flat in
+          # silence. Click to switch them off (and release the mic), click again for on.
+          "custom/cava" = {
+            exec = "${lib.getExe cavaScript} ${dotfiles + "/waybar/cava.conf"} ${dotfiles + "/waybar/cava-mic.conf"}";
+            return-type = "json";
+            on-click = "${lib.getExe cavaScript} toggle";
           };
           mpris = {
             format = "{player_icon}  {dynamic}";

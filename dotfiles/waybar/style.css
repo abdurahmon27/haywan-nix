@@ -32,7 +32,7 @@ window#waybar.hidden {
 
 #custom-runcat,
 #workspaces,
-#cava,
+#custom-cava,
 #privacy,
 #custom-phrases,
 #time,
@@ -48,7 +48,7 @@ window#waybar.hidden {
 /* Top bar pills sit 4 px off the edge, 4 px apart. */
 #custom-runcat,
 #workspaces,
-#cava,
+#custom-cava,
 #privacy,
 #custom-phrases {
   margin: 4px;
@@ -164,16 +164,35 @@ window#waybar.hidden {
   background: #e78a4e;
 }
 
-/* The player: the sound bars get their own pill, then the title and the buttons
- * are segments of a second one. They're separate modules (each hides on its own
- * when nothing plays), so the segments share a background and only the outer
- * corners are rounded. */
-#cava {
-  margin: 4px;
-  padding: 0 12px;
+/* Sound bars, left of the Claude pill: orange while the speakers are louder,
+ * aqua while the mic is, dim in silence. Off (click): just a dimmed icon. */
+#custom-cava {
   color: #e78a4e;
   font-size: 13px;
+  transition: color 0.3s ease;
 }
+
+#custom-cava.mic {
+  color: #89b482;
+}
+
+#custom-cava.silent {
+  color: #665c54;
+}
+
+#custom-cava.off {
+  padding: 0 10px;
+  color: #665c54;
+  font-size: 15px;
+}
+
+#custom-cava:hover {
+  border-color: rgba(212, 190, 152, 0.30);
+}
+
+/* The player: the title and the buttons are segments of one pill. They're
+ * separate modules (each hides on its own when nothing plays), so the segments
+ * share a background and only the outer corners are rounded. */
 
 #mpris,
 #custom-media-prev,
