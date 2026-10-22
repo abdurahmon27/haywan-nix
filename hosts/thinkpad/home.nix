@@ -71,8 +71,8 @@ in
     claudeLimits = {
       enable = true;
       accounts = [
-        { name = "personal"; configDir = ".claude"; label = "󰚩"; }
-        { name = "dona"; configDir = ".config/claude-dona"; label = "D"; }
+        { name = "personal"; configDir = ".claude"; label = "󰀄"; } # person
+        { name = "dona"; configDir = ".config/claude-dona"; label = "󰃖"; } # briefcase
       ];
     };
   };

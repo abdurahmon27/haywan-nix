@@ -1,9 +1,10 @@
 # Waybar module: every account's usage, from the cache claude-limits-fetch keeps.
 # $config is prepended by modules/home/claude-limits.nix.
 #
-# The bar shows one chip per account — label, a meter, and the fuller of the two
-# windows as a percentage. The tooltip breaks that down per window, with how long
-# until each resets and what the prompt hook is currently doing about it.
+# The bar shows Claude's ✻ and one chip per account — label, a ring, and the fuller
+# of the two windows as a percentage. The tooltip breaks that down per window: a
+# progress line, the percentage, when it resets (countdown and clock time), and
+# what the prompt hook is currently doing about it.
 
 cache="${XDG_CACHE_HOME:-$HOME/.cache}/claude-limits"
 
@@ -38,14 +39,21 @@ jq -c --argjson a "$accounts" '
     def faint($s): "<span fgcolor=\"#928374\">\($s)</span>";
     def ghost($s): "<span fgcolor=\"#7c6f64\">\($s)</span>";
 
-    # A filled run, then the same glyph at low alpha for the track, so the meter
-    # reads as one continuous bar tinted by its level rather than as two shapes.
+    # A filled run of ━, then the same glyph at low alpha for the track: one smooth
+    # line tinted by its level (━ joins up seamlessly in a monospace font).
     def meter($cells):
       (if . == null then 0 else (. / 100 * $cells | round) end) as $f
       | (if $f > $cells then $cells elif $f < 0 then 0 else $f end) as $f
-      | "<span rise=\"3000\" fgcolor=\"\(colour)\">\(rep("▃"; $f))"
-        + "<span fgalpha=\"16%\">\(rep("▃"; $cells - $f))</span></span>";
+      | "<span fgcolor=\"\(colour)\">\(rep("━"; $f))"
+        + "<span fgalpha=\"18%\">\(rep("━"; $cells - $f))</span></span>";
+    # A ring that fills in eighths; an empty circle below one eighth.
+    def ring:
+      if . == null then ghost("󰝦")
+      else (. / 12.5 | ceil) as $i
+        | tint(if $i <= 0 then "󰝦" else ["󰪞","󰪟","󰪠","󰪡","󰪢","󰪣","󰪤","󰪥"][[$i, 8] | min - 1] end)
+      end;
     def shown: if . == null then "—" else "\(floor)%" end;
+    def claude: "<span fgcolor=\"#d97757\">✻</span>";
 
     def epoch: if . == null then null else (.[0:19] + "Z" | fromdateiso8601) end;
     def ago: if . == null then "—"
@@ -54,11 +62,22 @@ jq -c --argjson a "$accounts" '
       elif . < 86400 then "\(. / 3600 | floor)h \((. % 3600) / 60 | floor | tostring | lpad(2) | sub(" "; "0"))m"
       else "\(. / 86400 | floor)d \((. % 86400) / 3600 | floor)h" end;
     def until: epoch | if . == null then null else . - $now end;
+    # Local clock time of a reset: "19:00" today, "tomorrow 04:00", else "Wed 04:00".
+    def day: strflocaltime("%Y-%m-%d");
+    def clock:
+      if . == null then null
+      elif day == ($now | day) then strflocaltime("%H:%M")
+      elif day == ($now + 86400 | day) then strflocaltime("tomorrow %H:%M")
+      else strflocaltime("%a %H:%M") end;
 
     def window($name; $w):
-      "   " + ghost($name | rpad(5)) + " " + ($w.pct | meter(10))
-      + "  " + ($w.pct | tint(shown | lpad(4)))
-      + "   " + ghost("↻ " + ($w.resets | until | ago));
+      "   " + faint($name | rpad(8)) + ($w.pct | meter(22))
+      + "  " + ($w.pct | tint("<b>\(shown | lpad(4))</b>")) + "\n"
+      + "   " + pad(8) + ghost(
+          ($w.resets | epoch) as $e
+          | if $e == null then "no reset time yet"
+            # +30: resets come a moment before the minute (18:59:59.8); round to it.
+            else "resets in " + ($e - $now | ago) + " · " + ($e + 30 | clock) end);
 
     def doing: { warn: "a cheaper model is suggested each prompt",
                  triage: "non-urgent prompts are held",
@@ -71,22 +90,24 @@ jq -c --argjson a "$accounts" '
   # null, not 0, when nothing has reported yet: an empty bar is not a healthy one.
   | ($a | map(.peak) | map(select(. != null)) | max) as $top
   | {
-      text: ($a | map(
-          faint(.label | esc) + " " + (.peak | meter(10)) + " " + (.peak | tint(shown))
+      text: (claude + "   " + ($a | map(
+          # Two spaces: an icon label (󰚩) draws wider than its cell and would touch the ring.
+          faint(.label | esc) + "  " + (.peak | ring) + " " + (.peak | tint(shown))
           + (if .ok | not then " " + ghost("󰀦") elif .stale then " " + ghost("󰔟") else "" end)
-        ) | join("  " + ghost("│") + "  ")),
+        ) | join("   "))),
 
-      tooltip: (($a | map(
+      tooltip: (claude + "  <b>Claude usage</b>\n" + ghost(rep("─"; 39)) + "\n"
+        + ($a | map(
           faint(.label | esc) + "  <b>" + (.name | esc) + "</b>\n"
           + (if .ok | not then "   " + faint("󰀦 " + (.error | esc)) + "\n"
              elif .stale then "   " + faint("󰔟 these numbers are stale") + "\n"
              else "" end)
-          + window("5h"; .five_hour) + "\n"
-          + window("week"; .seven_day)
+          + window("5-hour"; .five_hour) + "\n"
+          + window("weekly"; .seven_day)
           + ((.peak | doing) as $d
              | if $d == null then "" else "\n   " + (.peak | tint("<i>\($d)</i>")) end)
         ) | join("\n\n"))
-        + "\n\n" + ghost("checked "
+        + "\n" + ghost(rep("─"; 39)) + "\n" + ghost("updated "
           + (($a | map(.updated // 0) | max) as $u
              | if $u == 0 then "never"
                elif $now - $u < 60 then "just now"
